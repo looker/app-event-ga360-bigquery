@@ -13,7 +13,7 @@ explore: ga_sessions_block {
   }
 }
 
-view: sessions_base {
+view: ga_sessions {
   extends: [ga_sessions_base]
 }
 
