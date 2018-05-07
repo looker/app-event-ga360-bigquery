@@ -1,4 +1,4 @@
-connection: "bigquery-connectors-ga360"
+connection: "looker_app"
 
 # include all the views
 include: "*.view"
