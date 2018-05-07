@@ -1,6 +1,4 @@
-include: "/app_event_analytics_config/ga360_config.view"
-
-include: "ga_block.view.lkml"
+include: "ga_block.view"
 
 explore: ga_sessions_block {
   extends: [ga_sessions_base]
@@ -15,8 +13,8 @@ explore: ga_sessions_block {
   }
 }
 
-view: ga_sessions {
-  extends: [ga_sessions_base, ga360_config]
+view: sessions_base {
+  extends: [ga_sessions_base]
 }
 
 view: geoNetwork {
@@ -91,10 +89,6 @@ view: hits_appInfo {
 
 view: hits_eventInfo {
   extends: [hits_eventInfo_base]
-  dimension: play {
-    sql: ${eventAction} = "play" ;;
-    type: yesno
-  }
 }
 
 

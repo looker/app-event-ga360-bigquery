@@ -1,5 +1,7 @@
+include: "/app_event_analytics_config/ga360_config.view"
+
 explore: ga_sessions_base {
-  persist_for: "1 hour"
+  # persist_for: "1 hour"
   extension: required
   view_name: ga_sessions
   view_label: "Session"
@@ -117,6 +119,7 @@ explore: ga_sessions_base {
 
 view: ga_sessions_base {
   extension: required
+  extends: [ga360_config]
   dimension: partition_date {
     type: date_time
     sql: TIMESTAMP(PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d')))  ;;
@@ -550,7 +553,7 @@ view: hits_item_base {
   dimension: transactionId {label: "Transaction ID"}
   dimension: productName {
     label: "Product Name"
-    }
+  }
 
   dimension: productCategory {label: "Product Catetory"}
   dimension: productSku {label: "Product Sku"}
@@ -559,17 +562,17 @@ view: hits_item_base {
     description: "Should only be used as a dimension"
     label: "Item Quantity"
     hidden: yes
-    }
+  }
   dimension: itemRevenue {
     description: "Should only be used as a dimension"
     label: "Item Revenue"
     hidden: yes
-    }
+  }
   dimension: curencyCode {label: "Curency Code"}
   dimension: localItemRevenue {
     label:"Local Item Revenue"
     description: "Should only be used as a dimension"
-    }
+  }
 
   measure: product_count {
     type: count_distinct
@@ -701,7 +704,10 @@ view: hits_eventInfo_base {
   dimension: eventAction {label: "Event Action"}
   dimension: eventLabel {label: "Event Label"}
   dimension: eventValue {label: "Event Category"}
-
+  dimension: play {
+    sql: ${eventAction} = "play" ;;
+    type: yesno
+  }
 }
 
 # view: hits_sourcePropertyInfo {
