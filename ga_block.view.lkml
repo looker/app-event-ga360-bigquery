@@ -154,17 +154,17 @@ view: ga_sessions_base {
 
   dimension: visitStartSeconds {
     label: "Visit Start Seconds"
-    type: date
+    type: date_time
     sql: TIMESTAMP_SECONDS(${TABLE}.visitStarttime) ;;
     hidden: yes
   }
 
-  ## referencing partition_date for demo purposes only. Switch this dimension to reference visistStartSeconds
+  ## referencing partition_date for demo purposes only. Switch this dimension to reference visitStartSeconds
   dimension_group: visitStart {
     timeframes: [date,day_of_week,fiscal_quarter,week,month,year,month_name,month_num,week_of_year]
     label: "Visit Start"
     type: time
-    sql: (TIMESTAMP(${partition_date})) ;;
+    sql: ${visitStartSeconds} ;;
   }
   ## use visit or hit start time instead
   dimension: date {
@@ -213,7 +213,6 @@ view: ga_sessions_base {
     }
   }
 
-
   measure: returning_visitors {
     label: "Returning Visitors"
     type: count
@@ -251,6 +250,11 @@ view: geoNetwork_base {
     drill_fields: [region,metro,city,approximate_networkLocation,networkLocation]
   }
   dimension: region {
+    drill_fields: [metro,city,approximate_networkLocation,networkLocation]
+  }
+  dimension: state {
+    map_layer_name: us_states
+    sql: IF(${country} = "United States", ${region}, NULL) ;;
     drill_fields: [metro,city,approximate_networkLocation,networkLocation]
   }
   dimension: metro {
@@ -463,6 +467,7 @@ view: hits_base {
   }
   dimension: hitNumber {}
   dimension: time {}
+  dimension: type {}
   dimension_group: hit {
     timeframes: [date,day_of_week,fiscal_quarter,week,month,year,month_name,month_num,week_of_year]
     type: time
@@ -474,7 +479,7 @@ view: hits_base {
     label: "Is Secure"
     type: yesno
   }
-  dimension: isiInteraction {
+  dimension: isInteraction {
     label: "Is Interaction"
     type: yesno
   }
@@ -703,7 +708,7 @@ view: hits_eventInfo_base {
 
   dimension: eventAction {label: "Event Action"}
   dimension: eventLabel {label: "Event Label"}
-  dimension: eventValue {label: "Event Category"}
+  dimension: eventValue {label: "Event Value"}
   dimension: play {
     sql: ${eventAction} = "play" ;;
     type: yesno
