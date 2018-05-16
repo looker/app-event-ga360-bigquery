@@ -528,7 +528,10 @@ view: hits_page_base {
     }
   }
   dimension: hostName {label: "Host Name"}
-  dimension: pageTitle {label: "Page Title"}
+  dimension: pageTitle {
+    label: "Page Title"
+    full_suggestions: yes
+  }
   dimension: searchKeyword {label: "Search Keyword"}
   dimension: searchCategory{label: "Search Category"}
 }
@@ -704,7 +707,11 @@ view: hits_eCommerceAction_base {
 
 view: hits_eventInfo_base {
   extension: required
-  dimension: eventCategory {label: "Event Category"}
+  dimension: eventCategory {
+    label: "Event Category"
+    type: string
+    full_suggestions: yes
+  }
 
   dimension: eventAction {label: "Event Action"}
   dimension: eventLabel {label: "Event Label"}
