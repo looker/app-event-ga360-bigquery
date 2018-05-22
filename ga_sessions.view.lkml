@@ -15,6 +15,7 @@ explore: ga_sessions_block {
 
 view: ga_sessions {
   extends: [ga_sessions_base]
+  sql_table_name: `bigquery-public-data.google_analytics_sample.ga_sessions_*` ;;
 }
 
 view: geoNetwork {
@@ -98,4 +99,12 @@ view: hits_customDimensions {
 
 view: hits_customVariables {
   extends: [hits_customVariables_base]
+}
+
+view: hits_eCommerceAction {
+  extends: [hits_eCommerceAction_base]
+}
+
+view: hits_product {
+  extends: [hits_product_base]
 }
