@@ -90,8 +90,11 @@ view: hits_appInfo {
 
 view: hits_eventInfo {
   extends: [hits_eventInfo_base]
+  dimension: eventCategory {
+    full_suggestions: yes
+    suggestable: yes
+  }
 }
-
 
 view: hits_customDimensions {
   extends: [hits_customDimensions_base]
