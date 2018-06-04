@@ -183,7 +183,9 @@ view: ga_sessions_base {
   dimension: date {
     hidden: yes
   }
-  dimension: socialEngagementType {label: "Social Engagement Type"}
+  dimension: socialEngagementType {
+    label: "Social Engagement Type"
+    full_suggestions: yes}
   dimension: userid {label: "User ID"}
 
   measure: session_count {
@@ -243,23 +245,30 @@ view: ga_sessions_base {
 view: geoNetwork_base {
   extension: required
   dimension: continent {
+    full_suggestions: yes
     drill_fields: [subcontinent,country,region,city,metro,approximate_networkLocation,networkLocation]
   }
   dimension: subcontinent {
+    full_suggestions: yes
     drill_fields: [country,region,city,metro,approximate_networkLocation,networkLocation]
 
   }
   dimension: country {
+    full_suggestions: yes
     map_layer_name: countries
     drill_fields: [region,metro,city,approximate_networkLocation,networkLocation]
   }
   dimension: region {
+    full_suggestions: yes
     drill_fields: [metro,city,approximate_networkLocation,networkLocation]
   }
   dimension: metro {
+    full_suggestions: yes
     drill_fields: [city,approximate_networkLocation,networkLocation]
   }
-  dimension: city {drill_fields: [metro,approximate_networkLocation,networkLocation]}
+  dimension: city {
+    full_suggestions: yes
+    drill_fields: [metro,approximate_networkLocation,networkLocation]}
   dimension: cityid { label: "City ID"}
   dimension: networkDomain {label: "Network Domain"}
   dimension: latitude {
@@ -272,8 +281,11 @@ view: geoNetwork_base {
     hidden: yes
     sql: CAST(${TABLE}.longitude as FLOAT64);;
   }
-  dimension: networkLocation {label: "Network Location"}
+  dimension: networkLocation {
+    label: "Network Location"
+    full_suggestions: yes}
   dimension: location {
+    full_suggestions: yes
     type: location
     sql_latitude: ${latitude} ;;
     sql_longitude: ${longitude} ;;
@@ -434,21 +446,34 @@ view: trafficSource_base {
 
   # dimension: addContent {}
   # dimension: adwords {}
-  dimension: referralPath {label: "Referral Path"}
-  dimension: campaign {}
-  dimension: source {}
-  dimension: medium {}
+  dimension: referralPath {
+    full_suggestions: yes
+    label: "Referral Path"}
+  dimension: campaign {
+    full_suggestions: yes
+    suggest_persist_for: "0 seconds"
+  }
+  dimension: source {
+    full_suggestions: yes
+  }
+  dimension: medium {
+    full_suggestions: yes
+  }
 
 
   dimension: keyword {
     type: string
     sql:  CASE WHEN ${TABLE}.keyword IS NULL THEN 'Home Security' ELSE ${TABLE}.keyword END;;
+    full_suggestions: yes
   }
 
 
 
 
-  dimension: adContent {label: "Ad Content"}
+  dimension: adContent {
+    full_suggestions: yes
+    label: "Ad Content"
+  }
   measure: source_list {
     type: list
     list_field: source
@@ -480,16 +505,23 @@ view: adwordsClickInfo_base {
     description:"Page number in search results where the ad was shown."
   }
 
-  dimension: slot {}
+  dimension: slot {
+    full_suggestions: yes
+  }
   dimension: criteriaParameters {
     description: "Descriptive string for the targeting criterion"
     label: "Criteria Parameters"
+    full_suggestions: yes
   }
 
   dimension: gclId {}
   dimension: customerId {label: "Customer ID"}
-  dimension: adNetworkType {label: "Ad Network Type"}
-  dimension: targetingCriteria {label: "Targeting Criteria" hidden:yes}
+  dimension: adNetworkType {
+    label: "Ad Network Type"
+    full_suggestions: yes}
+  dimension: targetingCriteria {
+    full_suggestions: yes
+    label: "Targeting Criteria" hidden:yes}
   dimension: isVideoAd {
     label: "Is Video Ad"
     type: yesno
@@ -500,24 +532,48 @@ view: adwordsClickInfo_base {
 view: device_base {
   extension: required
 
-  dimension: browser {}
-  dimension: browserVersion {label:"Browser Version"}
-  dimension: operatingSystem {label: "Operating System"}
-  dimension: operatingSystemVersion {label: "Operating System Version"}
+  dimension: browser {full_suggestions: yes}
+  dimension: browserVersion {
+    label:"Browser Version"
+    full_suggestions: yes}
+  dimension: operatingSystem {
+    full_suggestions: yes
+    label: "Operating System"}
+  dimension: operatingSystemVersion {
+    full_suggestions: yes
+    label: "Operating System Version"}
   dimension: isMobile {label: "Is Mobile"}
-  dimension: flashVersion {label: "Flash Version"}
+  dimension: flashVersion {
+    full_suggestions: yes
+    label: "Flash Version"}
   dimension: javaEnabled {
     label: "Java Enabled"
     type: yesno
   }
-  dimension: language {}
-  dimension: screenColors {label: "Screen Colors"}
-  dimension: screenResolution {label: "Screen Resolution"}
-  dimension: mobileDeviceBranding {label: "Mobile Device Branding"}
-  dimension: mobileDeviceInfo {label: "Mobile Device Info"}
-  dimension: mobileDeviceMarketingName {label: "Mobile Device Marketing Name"}
-  dimension: mobileDeviceModel {label: "Mobile Device Model"}
-  dimension: mobileDeviceInputSelector {label: "Mobile Device Input Selector"}
+  dimension: language {
+    full_suggestions: yes
+  }
+  dimension: screenColors {
+    full_suggestions: yes
+    label: "Screen Colors"}
+  dimension: screenResolution {
+    full_suggestions: yes
+    label: "Screen Resolution"}
+  dimension: mobileDeviceBranding {
+    full_suggestions: yes
+    label: "Mobile Device Branding"}
+  dimension: mobileDeviceInfo {
+    full_suggestions: yes
+    label: "Mobile Device Info"}
+  dimension: mobileDeviceMarketingName {
+    full_suggestions: yes
+    label: "Mobile Device Marketing Name"}
+  dimension: mobileDeviceModel {
+    full_suggestions: yes
+    label: "Mobile Device Model"}
+  dimension: mobileDeviceInputSelector {
+    full_suggestions: yes
+    label: "Mobile Device Input Selector"}
 }
 
 ## A "Hit" is any action that results in data being sent to Google Analytics from your websit. The most common hit types include: pageviews, transactions, events, and social interactions.
@@ -547,7 +603,9 @@ view: hits_base {
     label: "Is Interaction"
     type: yesno
   }
-  dimension: referer {}
+  dimension: referer {
+    full_suggestions: yes
+  }
 
   measure: count {
     type: count
@@ -591,10 +649,18 @@ view: hits_page_base {
       icon_url: "http://www.looker.com/favicon.ico"
     }
   }
-  dimension: hostName {label: "Host Name"}
-  dimension: pageTitle {label: "Page Title"}
-  dimension: searchKeyword {label: "Search Keyword"}
-  dimension: searchCategory{label: "Search Category"}
+  dimension: hostName {
+    full_suggestions: yes
+    label: "Host Name"}
+  dimension: pageTitle {
+    full_suggestions: yes
+    label: "Page Title"}
+  dimension: searchKeyword {
+    full_suggestions: yes
+    label: "Search Keyword"}
+  dimension: searchCategory{
+    full_suggestions: yes
+    label: "Search Category"}
 }
 
 view: hits_transaction_base {
@@ -604,9 +670,15 @@ view: hits_transaction_base {
     primary_key: yes
     sql: ${hits.id} ;;
   }
-  dimension: transactionShipping {label: "Transaction Shipping"}
-  dimension: affiliation {}
-  dimension: curencyCode {label: "Curency Code"}
+  dimension: transactionShipping {
+    full_suggestions: yes
+    label: "Transaction Shipping"}
+  dimension: affiliation {
+    full_suggestions: yes
+  }
+  dimension: curencyCode {
+    full_suggestions: yes
+    label: "Curency Code"}
   dimension: localTransactionRevenue {label: "Local Transaction Revenue"}
   dimension: localTransactionTax {label: "Local Transaction Tax"}
   dimension: localTransactionShipping {label: "Local Transaction Shipping"}
@@ -625,7 +697,9 @@ view: hits_item_base {
     description: "Name of product on page when hit type is item"
     hidden: yes
   }
-  dimension: productCategory {label: "Product Catetory"}
+  dimension: productCategory {
+    full_suggestions: yes
+    label: "Product Catetory"}
   dimension: productSku {label: "Product Sku"}
   dimension: itemQuantity {label: "Item Quantity"}
   dimension: itemRevenue {label: "Item Revenue"}
@@ -645,17 +719,31 @@ view: hits_item_base {
 view: hits_social_base {
   extension: required   ## THESE FIELDS WILL ONLY BE AVAILABLE IF VIEW "hits_social" IN GA CUSTOMIZE HAS THE "extends" parameter declared
 
-  dimension: socialInteractionNetwork {label: "Social Interaction Network"}
-  dimension: socialInteractionAction {label: "Social Interaction Action"}
-  dimension: socialInteractions {label: "Social Interactions"}
-  dimension: socialInteractionTarget {label: "Social Interaction Target"}
-  dimension: socialNetwork {label: "Social Network"}
+  dimension: socialInteractionNetwork {
+    full_suggestions: yes
+    label: "Social Interaction Network"}
+  dimension: socialInteractionAction {
+    full_suggestions: yes
+    label: "Social Interaction Action"}
+  dimension: socialInteractions {
+    full_suggestions: yes
+    label: "Social Interactions"}
+  dimension: socialInteractionTarget {
+    full_suggestions: yes
+    label: "Social Interaction Target"}
+  dimension: socialNetwork {
+    full_suggestions: yes
+    label: "Social Network"}
   dimension: uniqueSocialInteractions {
     label: "Unique Social Interactions"
     type: number
   }
-  dimension: hasSocialSourceReferral {label: "Has Social Source Referral"}
-  dimension: socialInteractionNetworkAction {label: "Social Interaction Network Action"}
+  dimension: hasSocialSourceReferral {
+    full_suggestions: yes
+    label: "Has Social Source Referral"}
+  dimension: socialInteractionNetworkAction {
+    full_suggestions: yes
+    label: "Social Interaction Network Action"}
 }
 
 view: hits_publisher_base {
@@ -795,14 +883,17 @@ view: hits_eCommerceAction_base {
           WHEN ${action_type} = '8' THEN 'Checkout options'
           ELSE NULL
           END ;;
+    full_suggestions: yes
   }
 
 
 
   dimension: option {
+    full_suggestions: yes
     description: "This field is populated when a checkout option is specified"
   }
   dimension: step {
+    full_suggestions: yes
     description: "This field is populated when a checkout step is specified with the hit."
   }
 }
@@ -813,9 +904,15 @@ view: hits_eventInfo_base {
     label: "Event Category"
     full_suggestions: yes}
 
-  dimension: eventAction {label: "Event Action"}
-  dimension: eventLabel {label: "Event Label"}
-  dimension: eventValue {label: "Event Value"}
+  dimension: eventAction {
+    full_suggestions: yes
+    label: "Event Action"}
+  dimension: eventLabel {
+    full_suggestions: yes
+    label: "Event Label"}
+  dimension: eventValue {
+    full_suggestions: yes
+    label: "Event Value"}
 
 }
 
