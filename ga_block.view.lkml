@@ -163,7 +163,10 @@ view: ga_sessions_base {
     sql: ${visitnumber} ;;
   }
   dimension: visitId {label: "Visit ID"}
-  dimension: fullVisitorId {label: "Full Visitor ID"}
+  dimension: fullVisitorId {
+    label: "Full Visitor ID"
+    tags: ["user_id"]
+  }
 
   dimension: visitStartSeconds {
     label: "Visit Start Seconds"
