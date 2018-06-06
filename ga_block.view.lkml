@@ -153,6 +153,7 @@ view: ga_sessions_base {
   dimension:  first_time_visitor {
     type: yesno
     sql: ${visitnumber} = 1 ;;
+    full_suggestions: yes
   }
 
   dimension: visitnumbertier {
