@@ -391,11 +391,13 @@ view: totals_base {
     type: sum
     sql: ${transactions} ;;
   }
+
+
   measure: transactionRevenue_total {
     label: "Transaction Revenue Total"
     type: sum
     sql: (${TABLE}.transactionRevenue/1000000) ;;
-    value_format_name: usd_0
+    value_format_name: usd_large
     drill_fields: [transactions_count, transactionRevenue_total]
   }
 
@@ -923,8 +925,55 @@ view: hits_eventInfo_base {
 view: hits_product_base {
   extension: required
   dimension: productSKU {}
-  dimension: v2ProductName {}
-  dimension: productRevenue {type:number}
+  dimension: v2ProductName {label: "Product Name"}
+  dimension: productRevenue {type:number label:"Product Revenue"}
+
+  dimension: v2ProductCategory {
+    label:"Product Category"
+  }
+
+  dimension: productVariant {
+    label:"Product Variant"
+  }
+
+  dimension: productBrand {
+    label:"Product Brand"
+  }
+
+  dimension: localProductRevenue {
+    type: number
+    label:"Product Revenue (Local Currency)"
+  }
+
+  dimension: productPrice {
+    type: number
+    label:"Product Price"
+  }
+
+  dimension: localProductPrice {
+    type: number
+    label:"Product Price (Local Currency)"
+  }
+
+  dimension: ProductQuantity {
+    type: number
+    label:"Product Quantity"
+  }
+
+  dimension: productRefundAmount {
+    type: number
+    label:"Product Refund Amount"
+  }
+
+  dimension: isImpression {
+    type: yesno
+    label:"Is Impression"
+  }
+
+  dimension: isClick {
+    type: yesno
+    label:"Is Click"
+  }
 
   measure: total_product_revenue {type:sum sql: ${productRevenue} ;;}
 }
