@@ -975,7 +975,7 @@ view: hits_product_base {
     label:"Is Click"
   }
 
-  measure: total_product_revenue {type:sum sql: ${productRevenue} ;; value_format_name:usd_large}
+  measure: total_product_revenue {type:sum sql: (1.0 * (${productRevenue}/1000000)) ;; value_format_name:usd_large}
 }
 
 
