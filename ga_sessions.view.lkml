@@ -13,7 +13,7 @@ explore: ga_sessions_block {
   }
 }
 
-view: ga_sessions {
+view: ga_sessions_adapter {
   extends: [ga_sessions_base, ga360_config]
 }
 
