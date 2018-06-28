@@ -1,7 +1,7 @@
 include: "/app_event_analytics_config/ga360_config.view"
 
 explore: ga_sessions_base {
-  # persist_for: "1 hour"
+  persist_for: "1 hour"
   extension: required
   view_name: ga_sessions
   view_label: "Session"
@@ -15,11 +15,11 @@ explore: ga_sessions_base {
     sql: LEFT JOIN UNNEST([${ga_sessions.trafficSource}]) as trafficSource ;;
     relationship: one_to_one
   }
-  # join: adwordsClickInfo {
-  #   view_label: "Session: Traffic Source : Adwords"
-  #   sql: LEFT JOIN UNNEST([${trafficSource.adwordsClickInfo}]) as  adwordsClickInfo;;
-  #   relationship: one_to_one
-  # }
+  join: adwordsClickInfo {
+    view_label: "Session: Traffic Source : Adwords"
+    sql: LEFT JOIN UNNEST([ga_sessions.trafficSource.adwordsClickInfo]) as  adwordsClickInfo;;
+    relationship: one_to_one
+  }
 
   # join: DoubleClickClickInfo {
   #   view_label: "Session: Traffic Source : DoubleClick"
@@ -85,12 +85,19 @@ explore: ga_sessions_base {
   #   required_joins: [hits]
   # }
 
-  # join: hits_eCommerceAction {
-  #   view_label: "Session: Hits: eCommerce"
-  #   sql: LEFT JOIN UNNEST([hits.eCommerceAction]) as  hits_eCommerceAction;;
-  #   relationship: one_to_one
-  #   required_joins: [hits]
-  # }
+  join: hits_eCommerceAction {
+    view_label: "Session: Hits: eCommerce"
+    sql: LEFT JOIN UNNEST([hits.eCommerceAction]) as  hits_eCommerceAction;;
+    relationship: one_to_one
+    required_joins: [hits]
+  }
+
+  join: hits_product {
+    view_label: "Session: Hits: Product"
+    sql: LEFT JOIN UNNEST(hits.product) as  hits_product;;
+    relationship: one_to_one
+    required_joins: [hits]
+  }
 
   join: hits_customDimensions {
     view_label: "Session: Hits: Custom Dimensions"
@@ -115,11 +122,17 @@ explore: ga_sessions_base {
     sql: LEFT JOIN UNNEST([${first_hit.page}]) as first_page ;;
     relationship: one_to_one
   }
+  join: user_session_facts {
+    view_label: "User Session Facts"
+    sql_on: ${user_session_facts.ga_sessions_fullvisitorid} = ${ga_sessions.fullVisitorId} ;;
+    relationship: one_to_one
+  }
 }
+
+## Sessions are, by default, constrained by 30 minute intervals
 
 view: ga_sessions_base {
   extension: required
-  extends: [ga360_config]
   dimension: partition_date {
     type: date_time
     sql: TIMESTAMP(PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d')))  ;;
@@ -140,6 +153,7 @@ view: ga_sessions_base {
   dimension:  first_time_visitor {
     type: yesno
     sql: ${visitnumber} = 1 ;;
+    full_suggestions: yes
   }
 
   dimension: visitnumbertier {
@@ -150,27 +164,32 @@ view: ga_sessions_base {
     sql: ${visitnumber} ;;
   }
   dimension: visitId {label: "Visit ID"}
-  dimension: fullVisitorId {label: "Full Visitor ID"}
+  dimension: fullVisitorId {
+    label: "Full Visitor ID"
+    tags: ["user_id"]
+  }
 
   dimension: visitStartSeconds {
     label: "Visit Start Seconds"
-    type: date
+    type: date_time
     sql: TIMESTAMP_SECONDS(${TABLE}.visitStarttime) ;;
     hidden: yes
   }
 
   ## referencing partition_date for demo purposes only. Switch this dimension to reference visistStartSeconds
   dimension_group: visitStart {
-    timeframes: [date,day_of_week,fiscal_quarter,week,month,year,month_name,month_num,week_of_year]
+    timeframes: [date,day_of_week,fiscal_quarter,week,month,year,month_name,month_num,week_of_year,time_of_day, hour_of_day]
     label: "Visit Start"
     type: time
-    sql: (TIMESTAMP(${partition_date})) ;;
+    sql: TIMESTAMP_SECONDS(${TABLE}.visitStarttime) ;;
   }
   ## use visit or hit start time instead
   dimension: date {
     hidden: yes
   }
-  dimension: socialEngagementType {label: "Social Engagement Type"}
+  dimension: socialEngagementType {
+    label: "Social Engagement Type"
+    full_suggestions: yes}
   dimension: userid {label: "User ID"}
 
   measure: session_count {
@@ -204,16 +223,6 @@ view: ga_sessions_base {
     }
   }
 
-  measure: second_time_visitors {
-    label: "Second Time Visitors"
-    type: count
-    filters: {
-      field: visitnumber
-      value: "2"
-    }
-  }
-
-
   measure: returning_visitors {
     label: "Returning Visitors"
     type: count
@@ -240,23 +249,30 @@ view: ga_sessions_base {
 view: geoNetwork_base {
   extension: required
   dimension: continent {
+    full_suggestions: yes
     drill_fields: [subcontinent,country,region,city,metro,approximate_networkLocation,networkLocation]
   }
   dimension: subcontinent {
+    full_suggestions: yes
     drill_fields: [country,region,city,metro,approximate_networkLocation,networkLocation]
 
   }
   dimension: country {
+    full_suggestions: yes
     map_layer_name: countries
     drill_fields: [region,metro,city,approximate_networkLocation,networkLocation]
   }
   dimension: region {
+    full_suggestions: yes
     drill_fields: [metro,city,approximate_networkLocation,networkLocation]
   }
   dimension: metro {
+    full_suggestions: yes
     drill_fields: [city,approximate_networkLocation,networkLocation]
   }
-  dimension: city {drill_fields: [metro,approximate_networkLocation,networkLocation]}
+  dimension: city {
+    full_suggestions: yes
+    drill_fields: [metro,approximate_networkLocation,networkLocation]}
   dimension: cityid { label: "City ID"}
   dimension: networkDomain {label: "Network Domain"}
   dimension: latitude {
@@ -269,8 +285,11 @@ view: geoNetwork_base {
     hidden: yes
     sql: CAST(${TABLE}.longitude as FLOAT64);;
   }
-  dimension: networkLocation {label: "Network Location"}
+  dimension: networkLocation {
+    label: "Network Location"
+    full_suggestions: yes}
   dimension: location {
+    full_suggestions: yes
     type: location
     sql_latitude: ${latitude} ;;
     sql_longitude: ${longitude} ;;
@@ -310,6 +329,25 @@ view: totals_base {
     type: sum
     sql: ${TABLE}.pageviews ;;
   }
+
+  measure: avg_pageview_per_user {
+    label: "Average Pageviews per User"
+    type: number
+    sql: 1.0 * (${pageviews_total} / NULLIF( ${ga_sessions.unique_visitors},0))  ;;
+    value_format_name: decimal_1
+  }
+
+  # measure: avg_pageview_to_purchase {
+  #   label: "The average number of web pageviews for users who made a purchase"
+  #   type: number
+  #   sql: 1.0 * (${pageviews_total} / NULLIF( ${ga_sessions.unique_visitors},0))  ;;
+  #   value_format_name: decimal_1
+  #   filters: {
+  #     field: transactions_count
+  #     value: ">=1"
+  #   }
+  # }
+
   measure: timeonsite_total {
     label: "Time On Site"
     type: sum
@@ -345,17 +383,42 @@ view: totals_base {
     sql: 1.0 * ${bounces_total} / NULLIF(${ga_sessions.session_count},0) ;;
     value_format_name: percent_2
   }
-  measure: transactions_count {
-    type: sum
+
+  dimension: transactions {
     sql: ${TABLE}.transactions ;;
   }
+  measure: transactions_count {
+    type: sum
+    sql: ${transactions} ;;
+  }
+
+
   measure: transactionRevenue_total {
     label: "Transaction Revenue Total"
     type: sum
     sql: (${TABLE}.transactionRevenue/1000000) ;;
-    value_format_name: usd_0
+    value_format_name: usd_large
     drill_fields: [transactions_count, transactionRevenue_total]
   }
+
+  measure: transaction_conversion_rate {
+    type: number
+    sql: 1.0 * (${transactions_count}/NULLIF(${ga_sessions.session_count},0)) ;;
+    value_format_name: percent_2
+  }
+
+  measure: average_revenue_per_transaction {
+    type: number
+    sql: 1.0 * (${transactionRevenue_total}/NULLIF(${transactions_count},0)) ;;
+    value_format_name: usd
+  }
+
+  measure: average_revenue_per_user {
+    type: number
+    sql: 1.0 * (${transactionRevenue_total}/NULLIF(${ga_sessions.unique_visitors},0)) ;;
+    value_format_name: usd
+  }
+
   measure: newVisits_total {
     label: "New Visits Total"
     type: sum
@@ -387,14 +450,36 @@ view: totals_base {
 view: trafficSource_base {
   extension: required
 
-  dimension: addContent {}
-#   dimension: adwords {}
-  dimension: referralPath {label: "Referral Path"}
-  dimension: campaign {}
-  dimension: source {}
-  dimension: medium {}
-  dimension: keyword {}
-  dimension: adContent {label: "Ad Content"}
+  # dimension: addContent {}
+  # dimension: adwords {}
+  dimension: referralPath {
+    full_suggestions: yes
+    label: "Referral Path"}
+  dimension: campaign {
+    full_suggestions: yes
+    suggest_persist_for: "0 seconds"
+  }
+  dimension: source {
+    full_suggestions: yes
+  }
+  dimension: medium {
+    full_suggestions: yes
+  }
+
+
+  dimension: keyword {
+    type: string
+    sql:  CASE WHEN ${TABLE}.keyword IS NULL THEN 'Home Security' ELSE ${TABLE}.keyword END;;
+    full_suggestions: yes
+  }
+
+
+
+
+  dimension: adContent {
+    full_suggestions: yes
+    label: "Ad Content"
+  }
   measure: source_list {
     type: list
     list_field: source
@@ -413,47 +498,92 @@ view: trafficSource_base {
 #   dimension: adwordsClickInfo {}
 }
 
+
+## Analytics uses the last-click model ##
 view: adwordsClickInfo_base {
   extension: required
   dimension: campaignId {label: "Campaign ID"}
   dimension: adGroupId {label: "Ad Group ID"}
   dimension: creativeId {label: "Creative ID"}
   dimension: criteriaId {label: "Criteria ID"}
-  dimension: page {type: number}
-  dimension: slot {}
-  dimension: criteriaParameters {label: "Criteria Parameters"}
+  dimension: page {
+    type: number
+    description:"Page number in search results where the ad was shown."
+  }
+
+  dimension: slot {
+    full_suggestions: yes
+  }
+  dimension: criteriaParameters {
+    description: "Descriptive string for the targeting criterion"
+    label: "Criteria Parameters"
+    full_suggestions: yes
+  }
+
   dimension: gclId {}
   dimension: customerId {label: "Customer ID"}
-  dimension: adNetworkType {label: "Ad Network Type"}
-  dimension: targetingCriteria {label: "Targeting Criteria"}
+  dimension: adNetworkType {
+    label: "Ad Network Type"
+    full_suggestions: yes}
+  dimension: targetingCriteria {
+    full_suggestions: yes
+    label: "Targeting Criteria" hidden:yes}
   dimension: isVideoAd {
     label: "Is Video Ad"
     type: yesno
   }
 }
 
+
 view: device_base {
   extension: required
 
-  dimension: browser {}
-  dimension: browserVersion {label:"Browser Version"}
-  dimension: operatingSystem {label: "Operating System"}
-  dimension: operatingSystemVersion {label: "Operating System Version"}
+  dimension: browser {full_suggestions: yes}
+  dimension: browserVersion {
+    label:"Browser Version"
+    full_suggestions: yes}
+  dimension: operatingSystem {
+    full_suggestions: yes
+    label: "Operating System"}
+  dimension: operatingSystemVersion {
+    full_suggestions: yes
+    label: "Operating System Version"}
   dimension: isMobile {label: "Is Mobile"}
-  dimension: flashVersion {label: "Flash Version"}
+  dimension: flashVersion {
+    full_suggestions: yes
+    label: "Flash Version"}
   dimension: javaEnabled {
     label: "Java Enabled"
     type: yesno
   }
-  dimension: language {}
-  dimension: screenColors {label: "Screen Colors"}
-  dimension: screenResolution {label: "Screen Resolution"}
-  dimension: mobileDeviceBranding {label: "Mobile Device Branding"}
-  dimension: mobileDeviceInfo {label: "Mobile Device Info"}
-  dimension: mobileDeviceMarketingName {label: "Mobile Device Marketing Name"}
-  dimension: mobileDeviceModel {label: "Mobile Device Model"}
-  dimension: mobileDeviceInputSelector {label: "Mobile Device Input Selector"}
+  dimension: language {
+    full_suggestions: yes
+  }
+  dimension: screenColors {
+    full_suggestions: yes
+    label: "Screen Colors"}
+  dimension: screenResolution {
+    full_suggestions: yes
+    label: "Screen Resolution"}
+  dimension: mobileDeviceBranding {
+    full_suggestions: yes
+    label: "Mobile Device Branding"}
+  dimension: mobileDeviceInfo {
+    full_suggestions: yes
+    label: "Mobile Device Info"}
+  dimension: mobileDeviceMarketingName {
+    full_suggestions: yes
+    label: "Mobile Device Marketing Name"}
+  dimension: mobileDeviceModel {
+    full_suggestions: yes
+    label: "Mobile Device Model"}
+  dimension: mobileDeviceInputSelector {
+    full_suggestions: yes
+    label: "Mobile Device Input Selector"}
 }
+
+## A "Hit" is any action that results in data being sent to Google Analytics from your websit. The most common hit types include: pageviews, transactions, events, and social interactions.
+## These can be customized for whatever a user wants.
 
 view: hits_base {
   extension: required
@@ -470,6 +600,7 @@ view: hits_base {
   }
   dimension: hour {}
   dimension: minute {}
+  dimension: type {}
   dimension: isSecure {
     label: "Is Secure"
     type: yesno
@@ -478,7 +609,9 @@ view: hits_base {
     label: "Is Interaction"
     type: yesno
   }
-  dimension: referer {}
+  dimension: referer {
+    full_suggestions: yes
+  }
 
   measure: count {
     type: count
@@ -491,7 +624,7 @@ view: hits_base {
   dimension: item {hidden:yes}
   dimension: contentinfo {hidden:yes}
   dimension: social {hidden: yes}
-  dimension: publisher {hidden: yes}
+  dimension: publisher {}
   dimension: appInfo {hidden: yes}
   dimension: contentInfo {hidden: yes}
   dimension: customDimensions {hidden: yes}
@@ -522,10 +655,18 @@ view: hits_page_base {
       icon_url: "http://www.looker.com/favicon.ico"
     }
   }
-  dimension: hostName {label: "Host Name"}
-  dimension: pageTitle {label: "Page Title"}
-  dimension: searchKeyword {label: "Search Keyword"}
-  dimension: searchCategory{label: "Search Category"}
+  dimension: hostName {
+    full_suggestions: yes
+    label: "Host Name"}
+  dimension: pageTitle {
+    full_suggestions: yes
+    label: "Page Title"}
+  dimension: searchKeyword {
+    full_suggestions: yes
+    label: "Search Keyword"}
+  dimension: searchCategory{
+    full_suggestions: yes
+    label: "Search Category"}
 }
 
 view: hits_transaction_base {
@@ -535,9 +676,15 @@ view: hits_transaction_base {
     primary_key: yes
     sql: ${hits.id} ;;
   }
-  dimension: transactionShipping {label: "Transaction Shipping"}
-  dimension: affiliation {}
-  dimension: curencyCode {label: "Curency Code"}
+  dimension: transactionShipping {
+    full_suggestions: yes
+    label: "Transaction Shipping"}
+  dimension: affiliation {
+    full_suggestions: yes
+  }
+  dimension: curencyCode {
+    full_suggestions: yes
+    label: "Curency Code"}
   dimension: localTransactionRevenue {label: "Local Transaction Revenue"}
   dimension: localTransactionTax {label: "Local Transaction Tax"}
   dimension: localTransactionShipping {label: "Local Transaction Shipping"}
@@ -553,27 +700,21 @@ view: hits_item_base {
   dimension: transactionId {label: "Transaction ID"}
   dimension: productName {
     label: "Product Name"
+    description: "Name of product on page when hit type is item"
+    hidden: yes
   }
-
-  dimension: productCategory {label: "Product Catetory"}
+  dimension: productCategory {
+    full_suggestions: yes
+    label: "Product Catetory"}
   dimension: productSku {label: "Product Sku"}
-
-  dimension: itemQuantity {
-    description: "Should only be used as a dimension"
-    label: "Item Quantity"
-    hidden: yes
-  }
-  dimension: itemRevenue {
-    description: "Should only be used as a dimension"
-    label: "Item Revenue"
-    hidden: yes
-  }
+  dimension: itemQuantity {label: "Item Quantity"}
+  dimension: itemRevenue {label: "Item Revenue"}
   dimension: curencyCode {label: "Curency Code"}
-  dimension: localItemRevenue {
-    label:"Local Item Revenue"
-    description: "Should only be used as a dimension"
+  dimension: localItemRevenue {label:"Local Item Revenue"}
+  measure: total_item_revenue {
+    type: sum
+    sql: ${itemRevenue} ;;
   }
-
   measure: product_count {
     type: count_distinct
     sql: ${productSku} ;;
@@ -584,23 +725,59 @@ view: hits_item_base {
 view: hits_social_base {
   extension: required   ## THESE FIELDS WILL ONLY BE AVAILABLE IF VIEW "hits_social" IN GA CUSTOMIZE HAS THE "extends" parameter declared
 
-  dimension: socialInteractionNetwork {label: "Social Interaction Network"}
-  dimension: socialInteractionAction {label: "Social Interaction Action"}
-  dimension: socialInteractions {label: "Social Interactions"}
-  dimension: socialInteractionTarget {label: "Social Interaction Target"}
-  dimension: socialNetwork {label: "Social Network"}
+  dimension: socialInteractionNetwork {
+    full_suggestions: yes
+    label: "Social Interaction Network"}
+  dimension: socialInteractionAction {
+    full_suggestions: yes
+    label: "Social Interaction Action"}
+  dimension: socialInteractions {
+    full_suggestions: yes
+    label: "Social Interactions"}
+  dimension: socialInteractionTarget {
+    full_suggestions: yes
+    label: "Social Interaction Target"}
+  dimension: socialNetwork {
+    full_suggestions: yes
+    label: "Social Network"}
   dimension: uniqueSocialInteractions {
     label: "Unique Social Interactions"
     type: number
   }
-  dimension: hasSocialSourceReferral {label: "Has Social Source Referral"}
-  dimension: socialInteractionNetworkAction {label: "Social Interaction Network Action"}
+  dimension: hasSocialSourceReferral {
+    full_suggestions: yes
+    label: "Has Social Source Referral"}
+  dimension: socialInteractionNetworkAction {
+    full_suggestions: yes
+    label: "Social Interaction Network Action"}
 }
 
 view: hits_publisher_base {
   extension: required    ## THESE FIELDS WILL ONLY BE AVAILABLE IF VIEW "hits_publisher" IN GA CUSTOMIZE HAS THE "extends" parameter declared
 
   dimension: dfpClicks {}
+
+  measure: total_dfp_clicks {
+    type: sum
+    sql: ${dfpClicks} ;;
+  }
+
+  measure: total_dfp_impressions {
+    type: sum
+    sql: ${dfpImpressions} ;;
+  }
+
+  measure: total_dfp_revenue {
+    description: "Sum of CPM Revenue"
+    type: sum
+    sql: ${dfpRevenueCpm} ;;
+  }
+
+  measure: total_ads_clicks {
+    type: sum
+    sql: ${adsClicked} ;;
+  }
+
   dimension: dfpImpressions {}
   dimension: dfpMatchedQueries {}
   dimension: dfpMeasurableImpressions {}
@@ -692,25 +869,207 @@ view: hits_customVariables_base {
 
 view: hits_eCommerceAction_base {
   extension: required
-  dimension: action_type {}
-  dimension: option {}
-  dimension: step {}
+  dimension: action_type { type: string hidden: yes}
+
+
+  ## Build some customizable event funnel off of this
+  dimension: action_type_dim {
+    order_by_field: action_type
+    label: "Action Type"
+    type: string
+    sql: CASE
+          WHEN ${action_type} = '0' THEN 'Unknown'
+          WHEN ${action_type} = '1' THEN 'Click through of product lists'
+          WHEN ${action_type} = '2' THEN 'Product detail views'
+          WHEN ${action_type} = '3' THEN 'Add product(s) to cart'
+          WHEN ${action_type} = '4' THEN 'Remove product(s) from cart'
+          WHEN ${action_type} = '5' THEN 'Check out'
+          WHEN ${action_type} = '6' THEN 'Completed purchase'
+          WHEN ${action_type} = '7' THEN 'Refund of purchase'
+          WHEN ${action_type} = '8' THEN 'Checkout options'
+          ELSE NULL
+          END ;;
+    full_suggestions: yes
+  }
+
+
+
+  dimension: option {
+    full_suggestions: yes
+    description: "This field is populated when a checkout option is specified"
+  }
+  dimension: step {
+    full_suggestions: yes
+    description: "This field is populated when a checkout step is specified with the hit."
+  }
 }
 
 view: hits_eventInfo_base {
   extension: required
-  dimension: eventCategory {label: "Event Category"}
+  dimension: eventCategory {
+    label: "Event Category"
+    full_suggestions: yes}
 
-  dimension: eventAction {label: "Event Action"}
-  dimension: eventLabel {label: "Event Label"}
-  dimension: eventValue {label: "Event Category"}
-  dimension: play {
-    sql: ${eventAction} = "play" ;;
-    type: yesno
-  }
+  dimension: eventAction {
+    full_suggestions: yes
+    label: "Event Action"}
+  dimension: eventLabel {
+    full_suggestions: yes
+    label: "Event Label"}
+  dimension: eventValue {
+    full_suggestions: yes
+    label: "Event Value"}
+
 }
+
+view: hits_product_base {
+  extension: required
+  dimension: productSKU {}
+  dimension: v2ProductName {label: "Product Name"}
+  dimension: productRevenue {type:number label:"Product Revenue"}
+
+  dimension: v2ProductCategory {
+    label:"Product Category"
+  }
+
+  dimension: productVariant {
+    label:"Product Variant"
+  }
+
+  dimension: productBrand {
+    label:"Product Brand"
+  }
+
+  dimension: localProductRevenue {
+    type: number
+    label:"Product Revenue (Local Currency)"
+  }
+
+  dimension: productPrice {
+    type: number
+    label:"Product Price"
+  }
+
+  dimension: localProductPrice {
+    type: number
+    label:"Product Price (Local Currency)"
+  }
+
+  dimension: ProductQuantity {
+    type: number
+    label:"Product Quantity"
+  }
+
+  dimension: productRefundAmount {
+    type: number
+    label:"Product Refund Amount"
+  }
+
+  dimension: isImpression {
+    type: yesno
+    label:"Is Impression"
+  }
+
+  dimension: isClick {
+    type: yesno
+    label:"Is Click"
+  }
+
+  measure: total_product_revenue {type:sum sql: (1.0 * (${productRevenue}/1000000)) ;; value_format_name:usd_large}
+}
+
 
 # view: hits_sourcePropertyInfo {
 # #   extension: required
 #   dimension: sourcePropertyDisplayName {label: "Property Display Name"}
 # }
+
+
+## Restrict this DT with a conditional filter
+
+view: user_session_facts {
+  derived_table: {
+    sql: SELECT
+        ga_sessions.fullVisitorId AS ga_sessions_fullvisitorid,
+        min(TIMESTAMP_SECONDS(visitStartTime)) as first_start_date,
+        max(TIMESTAMP_SECONDS(visitStartTime)) as latest_start_date,
+        COUNT(*) AS lifetime_sessions,
+        COALESCE(SUM((totals.transactionRevenue/1000000) ), 0) AS lifetime_transaction_revenue,
+        COALESCE(SUM(totals.transactions ), 0) AS lifetime_transaction_count,
+        (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), day)+1) as days_active,
+        (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), week)+1) as weeks_active,
+        date_diff(CURRENT_DATE, min(date(TIMESTAMP_SECONDS(visitStartTime))), day) as days_since_first_session
+      FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*` as ga_sessions
+      GROUP BY 1
+       ;;
+  }
+
+
+
+  dimension: ga_sessions_fullvisitorid {
+    primary_key: yes
+    hidden: yes
+    type: string
+    sql: ${TABLE}.ga_sessions_fullvisitorid ;;
+  }
+
+  dimension_group: first_start_date {
+    type: time
+    sql: ${TABLE}.first_start_date ;;
+  }
+
+  dimension_group: latest_start_date {
+    type: time
+    sql: ${TABLE}.latest_start_date ;;
+  }
+
+  dimension: lifetime_sessions {
+    type: number
+    sql: ${TABLE}.lifetime_sessions ;;
+  }
+
+  dimension: days_active {
+    type: number
+    sql: ${TABLE}.days_active ;;
+  }
+
+  dimension: weeks_active {
+    type: number
+    sql: ${TABLE}.weeks_active ;;
+  }
+
+  dimension: days_since_first_session {
+    type: number
+    sql: ${TABLE}.days_since_first_session ;;
+  }
+
+  dimension: lifetime_transaction_revenue {
+    type: number
+    sql: ${TABLE}.lifetime_transaction_revenue ;;
+  }
+
+  dimension: lifetime_transaction_revenue_tier {
+    type: tier
+    sql: ${TABLE}.lifetime_transaction_revenue ;;
+    tiers: [0,1,5,10,25,50,100,150,200,250]
+    style: integer
+    value_format_name: usd_0
+  }
+
+  dimension: lifetime_transaction_count {
+    type: number
+    sql: ${lifetime_transaction_revenue} ;;
+
+  }
+
+  set: detail {
+    fields: [
+      ga_sessions_fullvisitorid,
+      first_start_date_time,
+      latest_start_date_time,
+      lifetime_sessions,
+      days_active,
+      days_since_first_session
+    ]
+  }
+}

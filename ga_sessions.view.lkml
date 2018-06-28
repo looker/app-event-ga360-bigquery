@@ -3,18 +3,10 @@ include: "ga_block.view"
 explore: ga_sessions_block {
   extends: [ga_sessions_base]
   extension: required
-
-  always_filter: {
-    filters: {
-      field: ga_sessions.partition_date
-      value: "7 days ago for 7 days"
-      ## Partition Date should always be set to a recent date to avoid runaway queries
-    }
-  }
 }
 
-view: ga_sessions {
-  extends: [ga_sessions_base]
+view: ga_sessions_adapter {
+  extends: [ga_sessions_base, ga360_config]
 }
 
 view: geoNetwork {
@@ -89,8 +81,11 @@ view: hits_appInfo {
 
 view: hits_eventInfo {
   extends: [hits_eventInfo_base]
+  dimension: eventCategory {
+    full_suggestions: yes
+    suggestable: yes
+  }
 }
-
 
 view: hits_customDimensions {
   extends: [hits_customDimensions_base]
@@ -98,4 +93,12 @@ view: hits_customDimensions {
 
 view: hits_customVariables {
   extends: [hits_customVariables_base]
+}
+
+view: hits_eCommerceAction {
+  extends: [hits_eCommerceAction_base]
+}
+
+view: hits_product {
+  extends: [hits_product_base]
 }
