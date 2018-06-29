@@ -1132,5 +1132,3 @@ view: user_session_facts {
     ]
   }
 }
-
-explore: user_session_facts {}
