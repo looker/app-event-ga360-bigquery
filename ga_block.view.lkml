@@ -990,7 +990,11 @@ view: hits_product_base {
 view: user_session_facts {
   derived_table: {
     sql: SELECT
-        ga_sessions.fullVisitorId AS ga_sessions_fullvisitorid,
+        ga_sessions.fullVisitorId AS fullvisitorid,
+        trafficSource.medium AS medium,
+        hits.referer AS referer,
+        trafficSource.campaign AS campaign,
+        trafficSource.source AS source,
         min(TIMESTAMP_SECONDS(visitStartTime)) as first_start_date,
         max(TIMESTAMP_SECONDS(visitStartTime)) as latest_start_date,
         COUNT(*) AS lifetime_sessions,
@@ -999,33 +1003,58 @@ view: user_session_facts {
         (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), day)+1) as days_active,
         (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), week)+1) as weeks_active,
         date_diff(CURRENT_DATE, min(date(TIMESTAMP_SECONDS(visitStartTime))), day) as days_since_first_session
-      FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*` as ga_sessions
-      GROUP BY 1
+      FROM `looker-ga360.69266980.ga_sessions_*` as ga_sessions
+      LEFT JOIN UNNEST([ga_sessions.trafficSource]) as trafficSource
+      LEFT JOIN UNNEST(ga_sessions.hits) as hits
+      GROUP BY 1, 2, 3, 4, 5
        ;;
   }
 
-
-
-  dimension: ga_sessions_fullvisitorid {
+  dimension: id {
+    type: string
     primary_key: yes
     hidden: yes
-    type: string
-    sql: ${TABLE}.ga_sessions_fullvisitorid ;;
+    sql: CONCAT((CAST ${full_visitor_id} AS STRING), '|', (CAST ${medium} AS STRING), '|',(CAST ${campaign} AS STRING), '|',(CAST ${referer} AS STRING)) ;;
   }
 
-  dimension_group: first_start_date {
+
+  dimension: full_visitor_id {
+    hidden: yes
+    type: string
+    sql: ${TABLE}.fullvisitorid ;;
+  }
+
+  dimension: medium {
+    type: string
+    sql: ${TABLE}.medium ;;
+  }
+
+  dimension: referer {
+    type: string
+    sql: ${TABLE}.referer ;;
+  }
+
+  dimension: campaign {
+    type: string
+    sql: ${TABLE}.campaign ;;
+  }
+
+  dimension_group: first_start {
     type: time
     sql: ${TABLE}.first_start_date ;;
+    timeframes: [date, week, month]
   }
 
   dimension_group: latest_start_date {
     type: time
     sql: ${TABLE}.latest_start_date ;;
+    hidden: yes
   }
 
-  dimension: lifetime_sessions {
-    type: number
+  measure: lifetime_sessions {
+    type: sum
     sql: ${TABLE}.lifetime_sessions ;;
+    hidden:  yes
   }
 
   dimension: days_active {
@@ -1038,14 +1067,21 @@ view: user_session_facts {
     sql: ${TABLE}.weeks_active ;;
   }
 
+  dimension: lifetime_transaction_revenue {
+    type: number
+    sql: ${TABLE}.lifetime_transaction_revenue ;;
+    hidden: yes
+  }
+
   dimension: days_since_first_session {
     type: number
     sql: ${TABLE}.days_since_first_session ;;
   }
 
-  dimension: lifetime_transaction_revenue {
-    type: number
-    sql: ${TABLE}.lifetime_transaction_revenue ;;
+  measure: lifetime_transaction_revenue_total {
+    type: sum
+    sql: ${lifetime_transaction_revenue} ;;
+    hidden:  yes
   }
 
   dimension: lifetime_transaction_revenue_tier {
@@ -1056,16 +1092,39 @@ view: user_session_facts {
     value_format_name: usd_0
   }
 
-  dimension: lifetime_transaction_count {
-    type: number
-    sql: ${lifetime_transaction_revenue} ;;
-
+  measure: lifetime_transaction_count {
+    type: sum
+    sql: ${TABLE}.lifetime_transaction_revenue ;;
+    value_format_name: decimal_0
+    hidden:  yes
   }
+
+  measure: transactions_per_user {
+    type: number
+    sql: ${lifetime_transaction_count}/ ${users_count};;
+    value_format_name: decimal_2
+  }
+
+  measure: revenue_per_user{
+    type: number
+    sql: ${lifetime_transaction_revenue_total} / ${users_count};;
+    value_format_name: usd
+  }
+
+  measure: sessions_per_user{
+    type: number
+    sql: ${lifetime_sessions} / ${users_count};;
+    value_format_name: decimal_2
+  }
+
+  measure: users_count {
+    type: count_distinct
+    sql: ${full_visitor_id} ;;
+  }
+
 
   set: detail {
     fields: [
-      ga_sessions_fullvisitorid,
-      first_start_date_time,
       latest_start_date_time,
       lifetime_sessions,
       days_active,
