@@ -122,9 +122,9 @@ explore: ga_sessions_base {
     sql: LEFT JOIN UNNEST([${first_hit.page}]) as first_page ;;
     relationship: one_to_one
   }
-  join: user_session_facts {
+  join: user_session_facts_adapter {
     view_label: "User Session Facts"
-    sql_on: ${user_session_facts.full_visitor_id} = ${ga_sessions.fullVisitorId} ;;
+    sql_on: ${user_session_facts_adapter.full_visitor_id} = ${ga_sessions.fullVisitorId} ;;
     relationship: one_to_one
   }
 }
