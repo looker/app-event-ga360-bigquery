@@ -987,7 +987,7 @@ view: hits_product_base {
 
 ## Restrict this DT with a conditional filter
 
-view: user_session_facts {
+view: user_session_facts_adapter {
   derived_table: {
     sql: SELECT
         ga_sessions.fullVisitorId AS fullvisitorid,
