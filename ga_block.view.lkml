@@ -124,7 +124,7 @@ explore: ga_sessions_base {
   }
   join: user_session_facts {
     view_label: "User Session Facts"
-    sql_on: ${user_session_facts.ga_sessions_fullvisitorid} = ${ga_sessions.fullVisitorId} ;;
+    sql_on: ${user_session_facts.full_visitor_id} = ${ga_sessions.fullVisitorId} ;;
     relationship: one_to_one
   }
 }
