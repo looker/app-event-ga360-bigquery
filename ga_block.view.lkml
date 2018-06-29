@@ -122,9 +122,9 @@ explore: ga_sessions_base {
     sql: LEFT JOIN UNNEST([${first_hit.page}]) as first_page ;;
     relationship: one_to_one
   }
-  join: user_session_facts_adapter {
+  join: user_session_facts {
     view_label: "User Session Facts"
-    sql_on: ${user_session_facts_adapter.full_visitor_id} = ${ga_sessions.fullVisitorId} ;;
+    sql_on: ${user_session_facts.full_visitor_id} = ${ga_sessions.fullVisitorId} ;;
     relationship: one_to_one
   }
 }
@@ -987,7 +987,7 @@ view: hits_product_base {
 
 ## Restrict this DT with a conditional filter
 
-view: user_session_facts_adapter {
+view: user_session_facts {
   derived_table: {
     sql: SELECT
         ga_sessions.fullVisitorId AS fullvisitorid,
@@ -1003,7 +1003,7 @@ view: user_session_facts_adapter {
         (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), day)+1) as days_active,
         (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), week)+1) as weeks_active,
         date_diff(CURRENT_DATE, min(date(TIMESTAMP_SECONDS(visitStartTime))), day) as days_since_first_session
-      FROM `looker-ga360.69266980.ga_sessions_*` as ga_sessions
+      FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*` as ga_sessions
       LEFT JOIN UNNEST([ga_sessions.trafficSource]) as trafficSource
       LEFT JOIN UNNEST(ga_sessions.hits) as hits
       GROUP BY 1, 2, 3, 4, 5
