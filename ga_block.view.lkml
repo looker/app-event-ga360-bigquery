@@ -1039,7 +1039,7 @@ view: user_session_facts {
     sql: ${TABLE}.campaign ;;
   }
 
-  dimension_group: first_start {
+  dimension_group: first_start_date {
     type: time
     sql: ${TABLE}.first_start_date ;;
     timeframes: [date, week, month]
