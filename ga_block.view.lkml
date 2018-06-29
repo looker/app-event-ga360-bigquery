@@ -1014,22 +1014,7 @@ view: user_session_facts {
     sql: ${TABLE}.fullvisitorid ;;
   }
 
-  dimension: medium {
-    type: string
-    sql: ${TABLE}.medium ;;
-  }
-
-  dimension: referer {
-    type: string
-    sql: ${TABLE}.referer ;;
-  }
-
-  dimension: campaign {
-    type: string
-    sql: ${TABLE}.campaign ;;
-  }
-
-  dimension_group: first_start_date {
+  dimension_group: first_start {
     type: time
     sql: ${TABLE}.first_start_date ;;
     timeframes: [date, week, month]
