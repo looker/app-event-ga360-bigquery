@@ -991,10 +991,6 @@ view: user_session_facts {
   derived_table: {
     sql: SELECT
         ga_sessions.fullVisitorId AS fullvisitorid,
-        trafficSource.medium AS medium,
-        hits.referer AS referer,
-        trafficSource.campaign AS campaign,
-        trafficSource.source AS source,
         min(TIMESTAMP_SECONDS(visitStartTime)) as first_start_date,
         max(TIMESTAMP_SECONDS(visitStartTime)) as latest_start_date,
         COUNT(*) AS lifetime_sessions,
@@ -1006,20 +1002,14 @@ view: user_session_facts {
       FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*` as ga_sessions
       LEFT JOIN UNNEST([ga_sessions.trafficSource]) as trafficSource
       LEFT JOIN UNNEST(ga_sessions.hits) as hits
-      GROUP BY 1, 2, 3, 4, 5
+      GROUP BY 1
        ;;
-  }
-
-  dimension: id {
-    type: string
-    primary_key: yes
-    hidden: yes
-    sql: CONCAT((CAST ${full_visitor_id} AS STRING), '|', (CAST ${medium} AS STRING), '|',(CAST ${campaign} AS STRING), '|',(CAST ${referer} AS STRING)) ;;
   }
 
 
   dimension: full_visitor_id {
     hidden: yes
+    primary_key: yes
     type: string
     sql: ${TABLE}.fullvisitorid ;;
   }
