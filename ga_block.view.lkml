@@ -1076,19 +1076,19 @@ view: user_session_facts {
 
   measure: transactions_per_user {
     type: number
-    sql: ${lifetime_transaction_count}/ ${users_count};;
+    sql: ${lifetime_transaction_count}/ NULLIF(${users_count},0);;
     value_format_name: decimal_2
   }
 
   measure: revenue_per_user{
     type: number
-    sql: ${lifetime_transaction_revenue_total} / ${users_count};;
+    sql: ${lifetime_transaction_revenue_total} / NULLIF(${users_count},0);;
     value_format_name: usd
   }
 
   measure: sessions_per_user{
     type: number
-    sql: ${lifetime_sessions} / ${users_count};;
+    sql: ${lifetime_sessions} / NULLIF(${users_count},0);;
     value_format_name: decimal_2
   }
 
