@@ -715,6 +715,7 @@ view: hits_item_base {
     label: "Product Name"
     description: "Name of product on page when hit type is item"
     hidden: yes
+    full_suggestions: yes
   }
   dimension: productCategory {
     full_suggestions: yes
@@ -950,6 +951,7 @@ view: hits_product_base {
   }
 
   dimension: productBrand {
+    full_suggestions: yes
     label:"Product Brand"
   }
 
