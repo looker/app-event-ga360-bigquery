@@ -1003,6 +1003,7 @@ view: hits_product_base {
 ## Restrict this DT with a conditional filter
 
 view: user_session_facts {
+  extends: [ga360_config]
   derived_table: {
     sql: SELECT
         ga_sessions.fullVisitorId AS fullvisitorid,
