@@ -1020,6 +1020,7 @@ view: user_session_facts {
       LEFT JOIN UNNEST(ga_sessions.hits) as hits
       GROUP BY 1
        ;;
+    sql_trigger_value: SELECT CURRENT_DATE() ;;
   }
 
 
@@ -1064,6 +1065,12 @@ view: user_session_facts {
     hidden: yes
   }
 
+  dimension: lifetime_transaction_count {
+    type: number
+    sql: ${TABLE}.lifetime_transaction_count ;;
+  }
+
+
   dimension: days_since_first_session {
     type: number
     sql: ${TABLE}.days_since_first_session ;;
@@ -1083,12 +1090,7 @@ view: user_session_facts {
     value_format_name: usd_0
   }
 
-  measure: lifetime_transaction_count {
-    type: sum
-    sql: ${TABLE}.lifetime_transaction_revenue ;;
-    value_format_name: decimal_0
-#     hidden:  yes
-  }
+
 
 
   set: detail {
