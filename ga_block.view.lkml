@@ -1023,7 +1023,9 @@ view: user_session_facts {
     sql_trigger_value: SELECT CURRENT_DATE() ;;
   }
 
-  measure: count {}
+  measure: user_count {
+    type: count
+  }
 
   dimension: full_visitor_id {
     hidden: yes
