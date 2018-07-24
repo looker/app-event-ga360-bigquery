@@ -479,15 +479,9 @@ view: trafficSource_base {
     full_suggestions: yes
   }
 
-
   dimension: keyword {
-    type: string
-    sql:  CASE WHEN ${TABLE}.keyword IS NULL THEN 'Home Security' ELSE ${TABLE}.keyword END;;
     full_suggestions: yes
   }
-
-
-
 
   dimension: adContent {
     full_suggestions: yes
