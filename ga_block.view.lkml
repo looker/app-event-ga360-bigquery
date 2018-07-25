@@ -136,6 +136,7 @@ view: ga_sessions_base {
   dimension: partition_date {
     type: date_time
     sql: TIMESTAMP(PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d')))  ;;
+    convert_tz: no
   }
 
   dimension: id {
@@ -174,6 +175,7 @@ view: ga_sessions_base {
     type: date_time
     sql: TIMESTAMP_SECONDS(${TABLE}.visitStarttime) ;;
     hidden: yes
+    convert_tz: no
   }
 
   ## referencing partition_date for demo purposes only. Switch this dimension to reference visistStartSeconds
@@ -182,6 +184,7 @@ view: ga_sessions_base {
     label: "Visit Start"
     type: time
     sql: TIMESTAMP_SECONDS(${TABLE}.visitStarttime) ;;
+    convert_tz: no
   }
   ## use visit or hit start time instead
   dimension: date {
@@ -604,6 +607,7 @@ view: hits_base {
     timeframes: [date,day_of_week,fiscal_quarter,week,month,year,month_name,month_num,week_of_year]
     type: time
     sql: TIMESTAMP_MILLIS(${ga_sessions.visitStartSeconds}*1000 + ${TABLE}.time) ;;
+    convert_tz: no
   }
   dimension: hour {}
   dimension: minute {}
@@ -1032,12 +1036,14 @@ view: user_session_facts {
     type: time
     sql: ${TABLE}.first_start_date ;;
     timeframes: [date, week, month]
+    convert_tz: no
   }
 
   dimension_group: latest_start_date {
     type: time
     sql: ${TABLE}.latest_start_date ;;
     hidden: yes
+    convert_tz: no
   }
 
   measure: lifetime_sessions {
