@@ -1043,8 +1043,8 @@ view: user_session_facts {
     convert_tz: no
   }
 
-  measure: lifetime_sessions {
-    type: sum
+  dimension: lifetime_sessions {
+    type: number
     sql: ${TABLE}.lifetime_sessions ;;
 #     hidden:  yes
   }
