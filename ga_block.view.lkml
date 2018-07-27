@@ -1021,9 +1021,6 @@ view: user_session_facts {
     sql_trigger_value: SELECT CURRENT_DATE() ;;
   }
 
-  measure: user_count {
-    type: count
-  }
 
   dimension: full_visitor_id {
     hidden: yes
@@ -1049,7 +1046,7 @@ view: user_session_facts {
   measure: lifetime_sessions {
     type: sum
     sql: ${TABLE}.lifetime_sessions ;;
-    hidden:  yes
+#     hidden:  yes
   }
 
   dimension: days_active {
@@ -1079,11 +1076,6 @@ view: user_session_facts {
     sql: ${TABLE}.days_since_first_session ;;
   }
 
-  measure: lifetime_transaction_revenue_total {
-    type: sum
-    sql: ${lifetime_transaction_revenue} ;;
-#     hidden:  yes
-  }
 
   dimension: lifetime_transaction_revenue_tier {
     type: tier
