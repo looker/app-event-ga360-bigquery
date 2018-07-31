@@ -442,9 +442,10 @@ view: totals_base {
 
 
   measure: newVisits_total {
-    label: "New Visits Total"
+    label: "New Users Total"
     type: sum
     sql: ${TABLE}.newVisits ;;
+    value_format_name: decimal_large
   }
   measure: screenViews_total {
     label: "Screen Views Total"
