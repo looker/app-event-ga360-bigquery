@@ -198,11 +198,14 @@ view: ga_sessions_base {
   measure: session_count {
     type: count
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.transactions_count, totals.transactionRevenue_total]
+    value_format_name: decimal_large
   }
   measure: unique_visitors {
+    label: "Unique Users"
     type: count_distinct
     sql: ${fullVisitorId} ;;
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.hits, totals.page_views, totals.timeonsite]
+    value_format_name: decimal_large
   }
 
   measure: average_sessions_per_visitor {
@@ -215,11 +218,13 @@ view: ga_sessions_base {
   measure: total_visitors {
     type: count
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.hits, totals.page_views, totals.timeonsite]
+    value_format_name: decimal_large
   }
 
   measure: first_time_visitors {
-    label: "First Time Visitors"
+    label: "First Time Users"
     type: count
+    value_format_name: decimal_large
     filters: {
       field: visitnumber
       value: "1"
@@ -227,8 +232,9 @@ view: ga_sessions_base {
   }
 
   measure: returning_visitors {
-    label: "Returning Visitors"
+    label: "Returning Users"
     type: count
+    value_format_name: decimal_large
     filters: {
       field: visitnumber
       value: "<> 1"
