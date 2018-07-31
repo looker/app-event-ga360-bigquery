@@ -122,9 +122,9 @@ explore: ga_sessions_base {
     sql: LEFT JOIN UNNEST([${first_hit.page}]) as first_page ;;
     relationship: one_to_one
   }
-  join: user_session_facts_base {
+  join: user_session_facts {
     view_label: "User Session Facts"
-    sql_on: ${user_session_facts_base.full_visitor_id} = ${ga_sessions.fullVisitorId} ;;
+    sql_on: ${user_session_facts.full_visitor_id} = ${ga_sessions.fullVisitorId} ;;
     relationship: one_to_one
   }
 }
@@ -1007,100 +1007,100 @@ view: hits_product_base {
 
 ## Restrict this DT with a conditional filter
 
-# view: user_session_facts {
-#   extends: [ga360_config]
-#   derived_table: {
-#     sql: SELECT
-#         ga_sessions.fullVisitorId AS fullvisitorid,
-#         min(TIMESTAMP_SECONDS(visitStartTime)) as first_start_date,
-#         max(TIMESTAMP_SECONDS(visitStartTime)) as latest_start_date,
-#         COUNT(*) AS lifetime_sessions,
-#         COALESCE(SUM((totals.transactionRevenue/1000000) ), 0) AS lifetime_transaction_revenue,
-#         COALESCE(SUM(totals.transactions ), 0) AS lifetime_transaction_count,
-#         (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), day)+1) as days_active,
-#         (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), week)+1) as weeks_active,
-#         date_diff(CURRENT_DATE, min(date(TIMESTAMP_SECONDS(visitStartTime))), day) as days_since_first_session
-#       FROM {{ ga_sessions.ga_sample_schema._sql }} as ga_sessions
-#       LEFT JOIN UNNEST([ga_sessions.trafficSource]) as trafficSource
-#       LEFT JOIN UNNEST(ga_sessions.hits) as hits
-#       GROUP BY 1
-#       ;;
-#     sql_trigger_value: SELECT CURRENT_DATE() ;;
-#   }
+ view: user_session_facts {
+  extends: [ga360_config]
+  derived_table: {
+    sql: SELECT
+        ga_sessions.fullVisitorId AS fullvisitorid,
+        min(TIMESTAMP_SECONDS(visitStartTime)) as first_start_date,
+        max(TIMESTAMP_SECONDS(visitStartTime)) as latest_start_date,
+        COUNT(*) AS lifetime_sessions,
+        COALESCE(SUM((totals.transactionRevenue/1000000) ), 0) AS lifetime_transaction_revenue,
+        COALESCE(SUM(totals.transactions ), 0) AS lifetime_transaction_count,
+        (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), day)+1) as days_active,
+        (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), week)+1) as weeks_active,
+        date_diff(CURRENT_DATE, min(date(TIMESTAMP_SECONDS(visitStartTime))), day) as days_since_first_session
+      FROM {{ ga_sessions.ga_sample_schema._sql }} as ga_sessions
+      LEFT JOIN UNNEST([ga_sessions.trafficSource]) as trafficSource
+      LEFT JOIN UNNEST(ga_sessions.hits) as hits
+      GROUP BY 1
+      ;;
+    sql_trigger_value: SELECT CURRENT_DATE() ;;
+  }
 
 
-#   dimension: full_visitor_id {
-#     hidden: yes
-#     primary_key: yes
-#     type: string
-#     sql: ${TABLE}.fullvisitorid ;;
-#   }
+  dimension: full_visitor_id {
+    hidden: yes
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.fullvisitorid ;;
+  }
+#
+  dimension_group: first_start {
+    type: time
+    sql: ${TABLE}.first_start_date ;;
+    timeframes: [date, week, month]
+    convert_tz: no
+  }
+#
+  dimension_group: latest_start_date {
+    type: time
+    sql: ${TABLE}.latest_start_date ;;
+    hidden: yes
+    convert_tz: no
+  }
+#
+  dimension: lifetime_sessions {
+    type: number
+    sql: ${TABLE}.lifetime_sessions ;;
+#     hidden:  yes
+  }
 
-#   dimension_group: first_start {
-#     type: time
-#     sql: ${TABLE}.first_start_date ;;
-#     timeframes: [date, week, month]
-#     convert_tz: no
-#   }
+  dimension: days_active {
+    type: number
+    sql: ${TABLE}.days_active ;;
+  }
 
-#   dimension_group: latest_start_date {
-#     type: time
-#     sql: ${TABLE}.latest_start_date ;;
-#     hidden: yes
-#     convert_tz: no
-#   }
+  dimension: weeks_active {
+    type: number
+    sql: ${TABLE}.weeks_active ;;
+  }
 
-#   dimension: lifetime_sessions {
-#     type: number
-#     sql: ${TABLE}.lifetime_sessions ;;
-# #     hidden:  yes
-#   }
-
-#   dimension: days_active {
-#     type: number
-#     sql: ${TABLE}.days_active ;;
-#   }
-
-#   dimension: weeks_active {
-#     type: number
-#     sql: ${TABLE}.weeks_active ;;
-#   }
-
-#   dimension: lifetime_transaction_revenue {
-#     type: number
-#     sql: ${TABLE}.lifetime_transaction_revenue ;;
-#     hidden: yes
-#   }
-
-#   dimension: lifetime_transaction_count {
-#     type: number
-#     sql: ${TABLE}.lifetime_transaction_count ;;
-#   }
-
-
-#   dimension: days_since_first_session {
-#     type: number
-#     sql: ${TABLE}.days_since_first_session ;;
-#   }
-
-
-#   dimension: lifetime_transaction_revenue_tier {
-#     type: tier
-#     sql: ${TABLE}.lifetime_transaction_revenue ;;
-#     tiers: [0,1,5,10,25,50,100,150,200,250]
-#     style: integer
-#     value_format_name: usd_0
-#   }
-
-
-
-
-#   set: detail {
-#     fields: [
-#       latest_start_date_time,
-#       lifetime_sessions,
-#       days_active,
-#       days_since_first_session
-#     ]
-#   }
-# }
+  dimension: lifetime_transaction_revenue {
+    type: number
+    sql: ${TABLE}.lifetime_transaction_revenue ;;
+    hidden: yes
+   }
+#
+  dimension: lifetime_transaction_count {
+    type: number
+    sql: ${TABLE}.lifetime_transaction_count ;;
+  }
+#
+#
+  dimension: days_since_first_session {
+    type: number
+    sql: ${TABLE}.days_since_first_session ;;
+  }
+#
+#
+  dimension: lifetime_transaction_revenue_tier {
+    type: tier
+    sql: ${TABLE}.lifetime_transaction_revenue ;;
+    tiers: [0,1,5,10,25,50,100,150,200,250]
+    style: integer
+    value_format_name: usd_0
+  }
+#
+#
+#
+#
+  set: detail {
+    fields: [
+      latest_start_date_time,
+      lifetime_sessions,
+      days_active,
+      days_since_first_session
+    ]
+  }
+ }
