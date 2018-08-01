@@ -196,6 +196,7 @@ view: ga_sessions_base {
   dimension: userid {label: "User ID"}
 
   measure: session_count {
+    label: "Sessions"
     type: count
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.transactions_count, totals.transactionRevenue_total]
     value_format_name: decimal_large
