@@ -9,9 +9,9 @@ include: "*.view"
 
 
 named_value_format: usd_large {
-  value_format: "[>=1000000]$0.00,,\"M\";[>=1000]$0.00,\"K\";$0.00"
+  value_format: "[>=1000000]$0.00,,\"M\";$0.00"
 }
 
 named_value_format: decimal_large {
-  value_format: "[>=1000000000]0.00,,,\"B\";[>=1000000]0.00,,\"M\";[>=1000]0.00,\"K\";0.00"
+  value_format: "[>=1000000000]0.00,,,\"B\";[>=1000000]0.00,,\"M\";0.00"
 }
