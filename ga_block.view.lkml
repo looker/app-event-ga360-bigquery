@@ -399,12 +399,13 @@ view: totals_base {
   }
   measure: transactions_count {
     type: sum
+    label: "Transactions"
     sql: ${transactions} ;;
   }
 
 
   measure: transactionRevenue_total {
-    label: "Transaction Revenue Total"
+    label: "Revenue"
     type: sum
     sql: (${TABLE}.transactionRevenue/1000000) ;;
     value_format_name: usd_large
