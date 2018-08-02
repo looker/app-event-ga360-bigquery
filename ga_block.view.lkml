@@ -196,6 +196,7 @@ view: ga_sessions_base {
   dimension: userid {label: "User ID"}
 
   measure: session_count {
+    label: "Sessions"
     type: count
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.transactions_count, totals.transactionRevenue_total]
     value_format_name: decimal_large
@@ -360,7 +361,8 @@ view: totals_base {
   measure: timeonsite_total {
     label: "Time On Site"
     type: sum
-    sql: ${TABLE}.timeonsite ;;
+    sql: (${TABLE}.timeonsite) / 86400.0 ;;
+    value_format: "h:mm:ss"
   }
   dimension: timeonsite_tier {
     label: "Time On Site Tier"
@@ -373,8 +375,8 @@ view: totals_base {
     label: "Time On Site Average Per Session"
     type: number
     sql: 1.0 * ${timeonsite_total} / NULLIF(${ga_sessions.session_count},0) ;;
-    value_format_name: decimal_2
-  }
+    value_format: "h:mm:ss"
+    }
 
   measure: page_views_session {
     label: "PageViews Per Session"
@@ -399,12 +401,13 @@ view: totals_base {
   }
   measure: transactions_count {
     type: sum
+    label: "Transactions"
     sql: ${transactions} ;;
   }
 
 
   measure: transactionRevenue_total {
-    label: "Transaction Revenue Total"
+    label: "Revenue"
     type: sum
     sql: (${TABLE}.transactionRevenue/1000000) ;;
     value_format_name: usd_large
