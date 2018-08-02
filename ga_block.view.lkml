@@ -388,6 +388,7 @@ view: totals_base {
   measure: bounces_total {
     type: sum
     sql: ${TABLE}.bounces ;;
+    value_format_name: decimal_large
   }
   measure: bounce_rate {
     type:  number
@@ -446,6 +447,7 @@ view: totals_base {
 
   measure: newVisits_total {
     label: "New Users Total"
+    description: "A visit is a session with an interactive event"
     type: sum
     sql: ${TABLE}.newVisits ;;
     value_format_name: decimal_large
@@ -1026,6 +1028,7 @@ view: hits_product_base {
       FROM {{ ga_sessions.ga_sample_schema._sql }} as ga_sessions
       LEFT JOIN UNNEST([ga_sessions.trafficSource]) as trafficSource
       LEFT JOIN UNNEST(ga_sessions.hits) as hits
+      WHERE TIMESTAMP(PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d')))
       GROUP BY 1
       ;;
     sql_trigger_value: SELECT CURRENT_DATE() ;;
