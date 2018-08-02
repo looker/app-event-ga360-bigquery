@@ -361,7 +361,8 @@ view: totals_base {
   measure: timeonsite_total {
     label: "Time On Site"
     type: sum
-    sql: ${TABLE}.timeonsite ;;
+    sql: (${TABLE}.timeonsite) / 86400.0 ;;
+    value_format: "h:mm:ss"
   }
   dimension: timeonsite_tier {
     label: "Time On Site Tier"
