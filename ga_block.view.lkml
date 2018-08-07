@@ -1028,6 +1028,7 @@ view: hits_product_base {
       FROM {{ ga_sessions.ga_sample_schema._sql }} as ga_sessions
       LEFT JOIN UNNEST([ga_sessions.trafficSource]) as trafficSource
       LEFT JOIN UNNEST(ga_sessions.hits) as hits
+      WHERE {% condition ga_sessions_base.partition_date %} TIMESTAMP(PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d'))) {% endcondition %}
       GROUP BY 1
       ;;
   }
