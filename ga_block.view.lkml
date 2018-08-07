@@ -617,13 +617,13 @@ view: hits_base {
   dimension: hitSeconds {
     label: "hit Seconds"
     type: date_time
-    sql: TIMESTAMP_MILLIS(${ga_sessions.visitStartSeconds}*1000 + ${TABLE}.time) ;;
+    sql: TIMESTAMP_MILLIS(visitStarttime*1000 + ${TABLE}.time) ;;
     hidden: yes
   }
   dimension_group: hit {
     timeframes: [date,day_of_week,fiscal_quarter,week,month,year,month_name,month_num,week_of_year]
     type: time
-    sql: TIMESTAMP_MILLIS(${ga_sessions.visitStartSeconds}*1000 + ${TABLE}.time) ;;
+    sql: TIMESTAMP_MILLIS(visitStarttime*1000 + ${TABLE}.time) ;;
   }
   dimension: hour {}
   dimension: minute {}
