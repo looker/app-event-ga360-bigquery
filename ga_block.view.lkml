@@ -175,7 +175,6 @@ view: ga_sessions_base {
     type: date_time
     sql: TIMESTAMP_SECONDS(${TABLE}.visitStarttime) ;;
     hidden: yes
-    convert_tz: no
   }
 
   ## referencing partition_date for demo purposes only. Switch this dimension to reference visistStartSeconds
@@ -183,8 +182,8 @@ view: ga_sessions_base {
     timeframes: [date,day_of_week,fiscal_quarter,week,month,year,month_name,month_num,week_of_year,time_of_day, hour_of_day]
     label: "Visit Start"
     type: time
+#     datatype: timestamp
     sql: TIMESTAMP_SECONDS(${TABLE}.visitStarttime) ;;
-    convert_tz: no
   }
   ## use visit or hit start time instead
   dimension: date {
@@ -196,13 +195,17 @@ view: ga_sessions_base {
   dimension: userid {label: "User ID"}
 
   measure: session_count {
+    label: "Sessions"
     type: count
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.transactions_count, totals.transactionRevenue_total]
+    value_format_name: decimal_large
   }
   measure: unique_visitors {
+    label: "Unique Users"
     type: count_distinct
     sql: ${fullVisitorId} ;;
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.hits, totals.page_views, totals.timeonsite]
+    value_format_name: decimal_large
   }
 
   measure: average_sessions_per_visitor {
@@ -215,11 +218,13 @@ view: ga_sessions_base {
   measure: total_visitors {
     type: count
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.hits, totals.page_views, totals.timeonsite]
+    value_format_name: decimal_large
   }
 
   measure: first_time_visitors {
-    label: "First Time Visitors"
+    label: "First Time Users"
     type: count
+    value_format_name: decimal_large
     filters: {
       field: visitnumber
       value: "1"
@@ -227,8 +232,9 @@ view: ga_sessions_base {
   }
 
   measure: returning_visitors {
-    label: "Returning Visitors"
+    label: "Returning Users"
     type: count
+    value_format_name: decimal_large
     filters: {
       field: visitnumber
       value: "<> 1"
@@ -354,7 +360,8 @@ view: totals_base {
   measure: timeonsite_total {
     label: "Time On Site"
     type: sum
-    sql: ${TABLE}.timeonsite ;;
+    sql: (${TABLE}.timeonsite) / 86400.0 ;;
+    value_format: "h:mm:ss"
   }
   dimension: timeonsite_tier {
     label: "Time On Site Tier"
@@ -367,8 +374,8 @@ view: totals_base {
     label: "Time On Site Average Per Session"
     type: number
     sql: 1.0 * ${timeonsite_total} / NULLIF(${ga_sessions.session_count},0) ;;
-    value_format_name: decimal_2
-  }
+    value_format: "h:mm:ss"
+    }
 
   measure: page_views_session {
     label: "PageViews Per Session"
@@ -380,6 +387,7 @@ view: totals_base {
   measure: bounces_total {
     type: sum
     sql: ${TABLE}.bounces ;;
+    value_format_name: decimal_large
   }
   measure: bounce_rate {
     type:  number
@@ -392,12 +400,13 @@ view: totals_base {
   }
   measure: transactions_count {
     type: sum
+    label: "Transactions"
     sql: ${transactions} ;;
   }
 
 
   measure: transactionRevenue_total {
-    label: "Transaction Revenue Total"
+    label: "Revenue"
     type: sum
     sql: (${TABLE}.transactionRevenue/1000000) ;;
     value_format_name: usd_large
@@ -436,9 +445,11 @@ view: totals_base {
 
 
   measure: newVisits_total {
-    label: "New Visits Total"
+    label: "New Users Total"
+    description: "A visit is a session with an interactive event"
     type: sum
     sql: ${TABLE}.newVisits ;;
+    value_format_name: decimal_large
   }
   measure: screenViews_total {
     label: "Screen Views Total"
@@ -603,11 +614,16 @@ view: hits_base {
   }
   dimension: hitNumber {}
   dimension: time {}
+  dimension: hitSeconds {
+    label: "hit Seconds"
+    type: date_time
+    sql: TIMESTAMP_MILLIS(visitStarttime*1000 + ${TABLE}.time) ;;
+    hidden: yes
+  }
   dimension_group: hit {
     timeframes: [date,day_of_week,fiscal_quarter,week,month,year,month_name,month_num,week_of_year]
     type: time
-    sql: TIMESTAMP_MILLIS(${ga_sessions.visitStartSeconds}*1000 + ${TABLE}.time) ;;
-    convert_tz: no
+    sql: TIMESTAMP_MILLIS(visitStarttime*1000 + ${TABLE}.time) ;;
   }
   dimension: hour {}
   dimension: minute {}
@@ -1000,7 +1016,7 @@ view: hits_product_base {
 
 ## Restrict this DT with a conditional filter
 
-view: user_session_facts {
+ view: user_session_facts {
   extends: [ga360_config]
   derived_table: {
     sql: SELECT
@@ -1016,14 +1032,11 @@ view: user_session_facts {
       FROM {{ ga_sessions.ga_sample_schema._sql }} as ga_sessions
       LEFT JOIN UNNEST([ga_sessions.trafficSource]) as trafficSource
       LEFT JOIN UNNEST(ga_sessions.hits) as hits
+      WHERE {% condition ga_sessions.partition_date %} TIMESTAMP(PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d'))) {% endcondition %}
       GROUP BY 1
-       ;;
-    sql_trigger_value: SELECT CURRENT_DATE() ;;
+      ;;
   }
 
-  measure: user_count {
-    type: count
-  }
 
   dimension: full_visitor_id {
     hidden: yes
@@ -1031,25 +1044,25 @@ view: user_session_facts {
     type: string
     sql: ${TABLE}.fullvisitorid ;;
   }
-
+#
   dimension_group: first_start {
     type: time
     sql: ${TABLE}.first_start_date ;;
     timeframes: [date, week, month]
     convert_tz: no
   }
-
+#
   dimension_group: latest_start_date {
     type: time
     sql: ${TABLE}.latest_start_date ;;
     hidden: yes
     convert_tz: no
   }
-
-  measure: lifetime_sessions {
-    type: sum
+#
+  dimension: lifetime_sessions {
+    type: number
     sql: ${TABLE}.lifetime_sessions ;;
-    hidden:  yes
+#     hidden:  yes
   }
 
   dimension: days_active {
@@ -1066,25 +1079,20 @@ view: user_session_facts {
     type: number
     sql: ${TABLE}.lifetime_transaction_revenue ;;
     hidden: yes
-  }
-
+   }
+#
   dimension: lifetime_transaction_count {
     type: number
     sql: ${TABLE}.lifetime_transaction_count ;;
   }
-
-
+#
+#
   dimension: days_since_first_session {
     type: number
     sql: ${TABLE}.days_since_first_session ;;
   }
-
-  measure: lifetime_transaction_revenue_total {
-    type: sum
-    sql: ${lifetime_transaction_revenue} ;;
-#     hidden:  yes
-  }
-
+#
+#
   dimension: lifetime_transaction_revenue_tier {
     type: tier
     sql: ${TABLE}.lifetime_transaction_revenue ;;
@@ -1092,10 +1100,10 @@ view: user_session_facts {
     style: integer
     value_format_name: usd_0
   }
-
-
-
-
+#
+#
+#
+#
   set: detail {
     fields: [
       latest_start_date_time,
@@ -1104,4 +1112,4 @@ view: user_session_facts {
       days_since_first_session
     ]
   }
-}
+ }
