@@ -187,7 +187,7 @@ view: ga_sessions_base {
   measure: days_active {
     type: number
     sql: (date_diff(${visitStartDate_max}, ${visitStartDate_min}, day)+1) ;;
-    hidden: yes
+    hidden: no
   }
 
   measure: weeks_active {
