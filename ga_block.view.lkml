@@ -122,11 +122,6 @@ explore: ga_sessions_base {
     sql: LEFT JOIN UNNEST([${first_hit.page}]) as first_page ;;
     relationship: one_to_one
   }
-  join: user_session_facts {
-    view_label: "User Session Facts"
-    sql_on: ${user_session_facts.full_visitor_id} = ${ga_sessions.fullVisitorId} ;;
-    relationship: one_to_one
-  }
 }
 
 ## Sessions are, by default, constrained by 30 minute intervals
