@@ -177,6 +177,36 @@ view: ga_sessions_base {
     hidden: yes
   }
 
+  measure: visitStartDate_min {
+    type: min
+    sql: DATE(${visitStartSeconds}) ;;
+    hidden: yes
+  }
+
+  measure: visitStartDate_max {
+    type: max
+    sql: DATE(${visitStartSeconds}) ;;
+    hidden: yes
+  }
+
+  measure: days_active {
+    type: number
+    sql: (date_diff(${visitStartDate_max}, ${visitStartDate_min}, day)+1) ;;
+    hidden: yes
+  }
+
+  measure: weeks_active {
+    type: number
+    sql: (date_diff(${visitStartDate_max}, ${visitStartDate_min}, week)+1) ;;
+    hidden: yes
+  }
+
+  measure: days_since_first_session {
+    type: number
+    sql:  date_diff(CURRENT_DATE, ${visitStartDate_min}, day) ;;
+    hidden: yes
+  }
+
   ## referencing partition_date for demo purposes only. Switch this dimension to reference visistStartSeconds
   dimension_group: visitStart {
     timeframes: [date,day_of_week,fiscal_quarter,week,month,year,month_name,month_num,week_of_year,time_of_day, hour_of_day]
@@ -1012,104 +1042,3 @@ view: hits_product_base {
 # #   extension: required
 #   dimension: sourcePropertyDisplayName {label: "Property Display Name"}
 # }
-
-
-## Restrict this DT with a conditional filter
-
- view: user_session_facts {
-  extends: [ga360_config]
-  derived_table: {
-    sql: SELECT
-        ga_sessions.fullVisitorId AS fullvisitorid,
-        min(TIMESTAMP_SECONDS(visitStartTime)) as first_start_date,
-        max(TIMESTAMP_SECONDS(visitStartTime)) as latest_start_date,
-        COUNT(*) AS lifetime_sessions,
-        COALESCE(SUM((totals.transactionRevenue/1000000) ), 0) AS lifetime_transaction_revenue,
-        COALESCE(SUM(totals.transactions ), 0) AS lifetime_transaction_count,
-        (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), day)+1) as days_active,
-        (date_diff(max(date(TIMESTAMP_SECONDS(visitStartTime))), min(date(TIMESTAMP_SECONDS(visitStartTime))), week)+1) as weeks_active,
-        date_diff(CURRENT_DATE, min(date(TIMESTAMP_SECONDS(visitStartTime))), day) as days_since_first_session
-      FROM {{ ga_sessions.ga_sample_schema._sql }} as ga_sessions
-      LEFT JOIN UNNEST([ga_sessions.trafficSource]) as trafficSource
-      LEFT JOIN UNNEST(ga_sessions.hits) as hits
-      WHERE {% condition ga_sessions.partition_date %} TIMESTAMP(PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d'))) {% endcondition %}
-      GROUP BY 1
-      ;;
-  }
-
-
-  dimension: full_visitor_id {
-    hidden: yes
-    primary_key: yes
-    type: string
-    sql: ${TABLE}.fullvisitorid ;;
-  }
-#
-  dimension_group: first_start {
-    type: time
-    sql: ${TABLE}.first_start_date ;;
-    timeframes: [date, week, month]
-    convert_tz: no
-  }
-#
-  dimension_group: latest_start_date {
-    type: time
-    sql: ${TABLE}.latest_start_date ;;
-    hidden: yes
-    convert_tz: no
-  }
-#
-  dimension: lifetime_sessions {
-    type: number
-    sql: ${TABLE}.lifetime_sessions ;;
-#     hidden:  yes
-  }
-
-  dimension: days_active {
-    type: number
-    sql: ${TABLE}.days_active ;;
-  }
-
-  dimension: weeks_active {
-    type: number
-    sql: ${TABLE}.weeks_active ;;
-  }
-
-  dimension: lifetime_transaction_revenue {
-    type: number
-    sql: ${TABLE}.lifetime_transaction_revenue ;;
-    hidden: yes
-   }
-#
-  dimension: lifetime_transaction_count {
-    type: number
-    sql: ${TABLE}.lifetime_transaction_count ;;
-  }
-#
-#
-  dimension: days_since_first_session {
-    type: number
-    sql: ${TABLE}.days_since_first_session ;;
-  }
-#
-#
-  dimension: lifetime_transaction_revenue_tier {
-    type: tier
-    sql: ${TABLE}.lifetime_transaction_revenue ;;
-    tiers: [0,1,5,10,25,50,100,150,200,250]
-    style: integer
-    value_format_name: usd_0
-  }
-#
-#
-#
-#
-  set: detail {
-    fields: [
-      latest_start_date_time,
-      lifetime_sessions,
-      days_active,
-      days_since_first_session
-    ]
-  }
- }
