@@ -594,7 +594,9 @@ view: device_base {
   dimension: operatingSystemVersion {
     full_suggestions: yes
     label: "Operating System Version"}
-  dimension: isMobile {label: "Is Mobile"}
+  dimension: isMobile {
+    label: "Is Mobile"
+    type: yesno}
   dimension: flashVersion {
     full_suggestions: yes
     label: "Flash Version"}
