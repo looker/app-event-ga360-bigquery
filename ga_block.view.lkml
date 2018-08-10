@@ -225,6 +225,17 @@ view: ga_sessions_base {
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.transactions_count, totals.transactionRevenue_total]
     value_format_name: decimal_large
   }
+
+  dimension: goal_conversion_dim {
+    sql: {{ ga_sessions.goal_conversion_dim._sql }} ;;
+  }
+
+  measure: goal_conversions {
+    type: sum
+    sql: ${goal_conversion_dim} ;;
+  }
+
+
   measure: unique_visitors {
     label: "Unique Users"
     type: count_distinct
@@ -247,7 +258,7 @@ view: ga_sessions_base {
   }
 
   measure: first_time_visitors {
-    label: "First Time Users"
+    label: "New Users"
     type: count
     value_format_name: decimal_large
     filters: {
@@ -255,6 +266,13 @@ view: ga_sessions_base {
       value: "1"
     }
   }
+
+  measure: percent_new_users {
+    type: number
+    sql: 1.0 * (${first_time_visitors} / NULLIF(${unique_visitors},0)) ;;
+    value_format_name: percent_0
+  }
+
 
   measure: returning_visitors {
     label: "Returning Users"
