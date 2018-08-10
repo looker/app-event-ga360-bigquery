@@ -172,15 +172,15 @@ view: ga_sessions_base {
     hidden: yes
   }
 
-  measure: visitStartDate_min {
+  measure: visitStartSeconds_min {
     type: min
-    sql: DATE(${visitStartSeconds}) ;;
+    sql: ${visitStartSeconds} ;;
     hidden: yes
   }
 
-  measure: visitStartDate_max {
+  measure: visitStartSeconds_max {
     type: max
-    sql: DATE(${visitStartSeconds}) ;;
+    sql: ${visitStartSeconds} ;;
     hidden: yes
   }
 
