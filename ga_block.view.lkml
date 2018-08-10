@@ -174,31 +174,31 @@ view: ga_sessions_base {
 
   measure: visitStartSeconds_min {
     type: min
-    sql: ${visitStartSeconds} ;;
+    sql: DATE(TIMESTAMP_SECONDS(${TABLE}.visitStarttime)) ;;
     hidden: yes
   }
 
   measure: visitStartSeconds_max {
     type: max
-    sql: ${visitStartSeconds} ;;
+    sql: DATE(TIMESTAMP_SECONDS(${TABLE}.visitStarttime)) ;;
     hidden: yes
   }
 
   measure: days_active {
     type: number
-    sql: (date_diff(${visitStartDate_max}, ${visitStartDate_min}, day)+1) ;;
+    sql: (date_diff(${visitStartSeconds_max}, ${visitStartSeconds_min}, day)+1) ;;
     hidden: no
   }
 
   measure: weeks_active {
     type: number
-    sql: (date_diff(${visitStartDate_max}, ${visitStartDate_min}, week)+1) ;;
+    sql: (date_diff(${visitStartSeconds_max}, ${visitStartSeconds_min}, week)+1) ;;
     hidden: yes
   }
 
   measure: days_since_first_session {
     type: number
-    sql:  date_diff(CURRENT_DATE, ${visitStartDate_min}, day) ;;
+    sql:  date_diff(CURRENT_DATE, ${visitStartSeconds_min}, day) ;;
     hidden: yes
   }
 
