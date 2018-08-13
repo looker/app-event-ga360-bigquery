@@ -226,16 +226,6 @@ view: ga_sessions_base {
     value_format_name: decimal_large
   }
 
-  dimension: goal_conversion_dim {
-    sql: {{ ga_sessions.goal_conversion_dim._sql }} ;;
-  }
-
-  measure: goal_conversions {
-    type: sum
-    sql: ${goal_conversion_dim} ;;
-  }
-
-
   measure: unique_visitors {
     label: "Unique Users"
     type: count_distinct
