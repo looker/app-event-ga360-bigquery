@@ -223,7 +223,7 @@ view: ga_sessions_base {
     label: "Sessions"
     type: count
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.transactions_count, totals.transactionRevenue_total]
-    value_format_name: decimal_short
+    value_format_name: decimal_large
   }
 
   measure: unique_visitors {
