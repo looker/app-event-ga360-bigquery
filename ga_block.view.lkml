@@ -1,5 +1,3 @@
-include: "/app_event_analytics_config/ga360_config.view"
-
 explore: ga_sessions_base {
   persist_for: "1 hour"
   extension: required
