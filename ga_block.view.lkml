@@ -150,6 +150,13 @@ view: ga_sessions_base {
     full_suggestions: yes
   }
 
+  filter: has_host {
+    suggest_dimension: hits_page.hostName
+    sql: (SELECT h.page.hostName FROM UNNEST(${ga_sessions.hits}) h
+      WHERE {%condition %} h.page.hostName {%endcondition%} LIMIT 1) IS NOT NULL ;;
+  }
+
+
   dimension: visitnumbertier {
     label: "Visit Number Tier"
     type: tier
