@@ -368,6 +368,7 @@ view: totals_base {
     label: "Page Views"
     type: sum
     sql: ${TABLE}.pageviews ;;
+    value_format_name: decimal_large
   }
 
   measure: avg_pageview_per_user {
