@@ -141,6 +141,28 @@ view: ga_sessions_base {
       WHERE {%condition %} h.page.pageTitle {%endcondition%} LIMIT 1) IS NOT NULL ;;
   }
 
+  dimension: goal_hit {
+    type: yesno
+    sql: TRUE ;;
+  }
+
+  measure: goal_conversions {
+    group_label: "Goals"
+    type: count
+    filters: {
+      field: goal_hit
+      value: "Yes"
+    }
+  }
+
+  measure: goal_conversion_rate {
+    description: "URL hits / Sessions"
+    group_label: "Goals"
+    type: number
+    sql: 1.0 * (${goal_conversions}/NULLIF(${ga_sessions.session_count},0));;
+    value_format_name: percent_2
+  }
+
   dimension: partition_date {
     type: date_time
     sql: TIMESTAMP(PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d')))  ;;
