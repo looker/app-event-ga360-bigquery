@@ -6,7 +6,8 @@ explore: ga_sessions_block {
 }
 
 view: ga_sessions_adapter {
-  extends: [ga_sessions_base, ga360_config]
+  extends: [ga_sessions_base]
+  extension: required
 }
 
 view: geoNetwork {

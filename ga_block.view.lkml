@@ -126,6 +126,43 @@ explore: ga_sessions_base {
 
 view: ga_sessions_base {
   extension: required
+
+  filter: has_host {
+    suggestable: yes
+    suggest_dimension: hits_page.hostName
+    sql: (SELECT h.page.hostName FROM UNNEST(${ga_sessions.hits}) h
+      WHERE {%condition %} h.page.hostName {%endcondition%} LIMIT 1) IS NOT NULL ;;
+  }
+
+  filter: has_page {
+    suggestable: yes
+    suggest_dimension: hits_page.pageTitle
+    sql: (SELECT h.page.pageTitle FROM UNNEST(${ga_sessions.hits}) h
+      WHERE {%condition %} h.page.pageTitle {%endcondition%} LIMIT 1) IS NOT NULL ;;
+  }
+
+  dimension: goal_hit {
+    type: yesno
+    sql: TRUE ;;
+  }
+
+  measure: goal_conversions {
+    group_label: "Goals"
+    type: count
+    filters: {
+      field: goal_hit
+      value: "Yes"
+    }
+  }
+
+  measure: goal_conversion_rate {
+    description: "URL hits / Sessions"
+    group_label: "Goals"
+    type: number
+    sql: 1.0 * (${goal_conversions}/NULLIF(${ga_sessions.session_count},0));;
+    value_format_name: percent_2
+  }
+
   dimension: partition_date {
     type: date_time
     sql: TIMESTAMP(PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d')))  ;;
