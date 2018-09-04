@@ -169,6 +169,7 @@ view: ga_sessions_base {
     convert_tz: no
   }
 
+
   dimension: id {
     primary_key: yes
     sql: CONCAT(CAST(${fullVisitorId} AS STRING), '|', COALESCE(CAST(${visitId} AS STRING),''), '|', CAST(PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d'))   AS STRING)) ;;
@@ -246,9 +247,15 @@ view: ga_sessions_base {
     sql: TIMESTAMP_SECONDS(${TABLE}.visitStarttime) ;;
   }
   ## use visit or hit start time instead
-  dimension: date {
-    hidden: yes
+  dimension_group: date {
+#     hidden: yes
+    type: time
+    timeframes: [raw, date, week, month, quarter, year, day_of_month, month_num]
+    sql: PARSE_TIMESTAMP('%Y%m%d', ${TABLE}.date)  ;;
+    convert_tz: no
   }
+
+
   dimension: socialEngagementType {
     label: "Social Engagement Type"
     full_suggestions: yes}
