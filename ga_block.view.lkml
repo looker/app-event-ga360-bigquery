@@ -128,12 +128,16 @@ view: ga_sessions_base {
   extension: required
 
 
-  dimension: partition_date {
+  dimension: partition_datetime {
     type: date_time
     sql: TIMESTAMP(PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d')))  ;;
     convert_tz: no
   }
 
+  dimension: partition_date {
+    type: date_raw
+    sql: PARSE_DATE('%Y%m%d', REGEXP_EXTRACT(_TABLE_SUFFIX,r'^\d\d\d\d\d\d\d\d'))  ;;
+  }
 
   dimension: id {
     primary_key: yes
