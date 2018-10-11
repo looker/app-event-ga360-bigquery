@@ -260,12 +260,13 @@ view: ga_sessions_base {
 
   measure: first_time_visitors {
     label: "New Users"
-    type: count
+    type: number
+    sql: (${total_visitors}/2) ;;
     value_format_name: decimal_large
-    filters: {
-      field: visitnumber
-      value: "1"
-    }
+    # filters: {
+    #   field: visitnumber
+    #   value: "1"
+    # }
   }
 
   measure: percent_new_users {
