@@ -190,6 +190,7 @@ view: ga_sessions_base {
   }
 
   measure: days_active {
+    group_label: "Totals"
     type: number
     sql: (date_diff(${visitStartSeconds_max}, ${visitStartSeconds_min}, day)+1) ;;
     hidden: no
@@ -232,6 +233,7 @@ view: ga_sessions_base {
 
   measure: session_count {
     label: "Sessions"
+    group_label: "Totals"
     type: count
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.transactions_count, totals.transactionRevenue_total]
     value_format_name: decimal_large
@@ -239,6 +241,7 @@ view: ga_sessions_base {
 
   measure: unique_visitors {
     label: "Unique Users"
+    group_label: "Totals"
     type: count_distinct
     sql: ${fullVisitorId} ;;
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.hits, totals.page_views, totals.timeonsite]
@@ -246,6 +249,7 @@ view: ga_sessions_base {
   }
 
   measure: average_sessions_per_visitor {
+    group_label: "Averages"
     type: number
     sql: 1.0 * (${session_count}/NULLIF(${unique_visitors},0))  ;;
     value_format_name: decimal_2
@@ -253,6 +257,7 @@ view: ga_sessions_base {
   }
 
   measure: total_visitors {
+    group_label: "Totals"
     type: count
     drill_fields: [fullVisitorId, visitnumber, session_count, totals.hits, totals.page_views, totals.timeonsite]
     value_format_name: decimal_large
@@ -260,6 +265,7 @@ view: ga_sessions_base {
 
   measure: first_time_visitors {
     label: "New Users"
+    group_label: "Totals"
     type: number
     sql: (${total_visitors}/2) ;;
     value_format_name: decimal_large
@@ -271,6 +277,7 @@ view: ga_sessions_base {
 
   measure: percent_new_users {
     type: number
+    group_label: "Rates"
     sql: 1.0 * (${first_time_visitors} / NULLIF(${unique_visitors},0)) ;;
     value_format_name: percent_0
   }
@@ -278,6 +285,7 @@ view: ga_sessions_base {
 
   measure: returning_visitors {
     label: "Returning Users"
+    group_label: "Totals"
     type: count
     value_format_name: decimal_large
     filters: {
@@ -365,21 +373,25 @@ view: totals_base {
     sql: ${ga_sessions.id} ;;
   }
   measure: visits_total {
+    group_label: "Totals"
     type: sum
     sql: ${TABLE}.visits ;;
   }
   measure: hits_total {
+    group_label: "Totals"
     type: sum
     sql: ${TABLE}.hits ;;
     drill_fields: [hits.detail*]
   }
   measure: hits_average_per_session {
+    group_label: "Averages"
     type: number
     sql: 1.0 * ${hits_total} / NULLIF(${ga_sessions.session_count},0) ;;
     value_format_name: decimal_2
   }
   measure: pageviews_total {
     label: "Page Views"
+    group_label: "Totals"
     type: sum
     sql: ${TABLE}.pageviews ;;
     value_format_name: decimal_large
@@ -387,6 +399,7 @@ view: totals_base {
 
   measure: avg_pageview_per_user {
     label: "Average Pageviews per User"
+    group_label: "Averages"
     type: number
     sql: 1.0 * (${pageviews_total} / NULLIF( ${ga_sessions.unique_visitors},0))  ;;
     value_format_name: decimal_1
@@ -405,12 +418,14 @@ view: totals_base {
 
   measure: timeonsite_total {
     label: "Time On Site"
+    group_label: "Totals"
     type: sum
     sql: (${TABLE}.timeonsite) / 86400.0 ;;
     value_format: "h:mm:ss"
   }
   dimension: timeonsite_tier {
     label: "Time On Site Tier"
+    group_label: "Totals"
     type: tier
     sql: ${TABLE}.timeonsite ;;
     tiers: [0,15,30,60,120,180,240,300,600]
@@ -418,6 +433,7 @@ view: totals_base {
   }
   measure: timeonsite_average_per_session {
     label: "Avg Session Duration"
+    group_label: "Averages"
     type: number
     sql: 1.0 * ${timeonsite_total} / NULLIF(${ga_sessions.session_count},0) ;;
     value_format: "h:mm:ss"
@@ -425,6 +441,7 @@ view: totals_base {
 
   measure: page_views_session {
     label: "PageViews Per Session"
+    group_label: "Averages"
     type: number
     sql: 1.0 * ${pageviews_total} / NULLIF(${ga_sessions.session_count},0) ;;
     value_format_name: decimal_2
@@ -432,10 +449,12 @@ view: totals_base {
 
   measure: bounces_total {
     type: sum
+    group_label: "Totals"
     sql: ${TABLE}.bounces ;;
     value_format_name: decimal_large
   }
   measure: bounce_rate {
+    group_label: "Rates"
     type:  number
     sql: 1.0 * ${bounces_total} / NULLIF(${ga_sessions.session_count},0) ;;
     value_format_name: percent_2
@@ -447,12 +466,14 @@ view: totals_base {
   measure: transactions_count {
     type: sum
     label: "Transactions"
+    group_label: "Totals"
     sql: ${transactions} ;;
   }
 
 
   measure: transactionRevenue_total {
     label: "Revenue"
+    group_label: "Totals"
     type: sum
     sql: (${TABLE}.transactionRevenue/1000000) ;;
     value_format_name: usd_large
@@ -461,29 +482,34 @@ view: totals_base {
 
   measure: transaction_conversion_rate {
     type: number
+    group_label: "Rates"
     sql: 1.0 * (${transactions_count}/NULLIF(${ga_sessions.session_count},0)) ;;
     value_format_name: percent_2
   }
 
   measure: average_revenue_per_transaction {
     type: number
+    group_label: "Averages"
     sql: 1.0 * (${transactionRevenue_total}/NULLIF(${transactions_count},0)) ;;
     value_format_name: usd
   }
 
   measure: average_revenue_per_user {
+    group_label: "Averages"
     type: number
     sql: 1.0 * (${transactionRevenue_total}/NULLIF(${ga_sessions.unique_visitors},0)) ;;
     value_format_name: usd
   }
 
   measure: average_transactions_per_user {
+    group_label: "Averages"
     type: number
     sql: 1.0 * (${transactions_count}/NULLIF(${ga_sessions.unique_visitors},0)) ;;
     value_format_name: decimal_2
   }
 
   measure: average_sessions_per_user {
+    group_label: "Averages"
     type: number
     sql: 1.0 * (${ga_sessions.session_count}/NULLIF(${ga_sessions.unique_visitors},0)) ;;
     value_format_name: decimal_2
@@ -493,27 +519,32 @@ view: totals_base {
   measure: newVisits_total {
     label: "New Users Total"
     description: "A visit is a session with an interactive event"
+    group_label: "Totals"
     type: sum
     sql: ${TABLE}.newVisits ;;
     value_format_name: decimal_large
   }
   measure: screenViews_total {
     label: "Screen Views Total"
+    group_label: "Totals"
     type: sum
     sql: ${TABLE}.screenViews ;;
   }
   measure: timeOnScreen_total{
     label: "Time On Screen Total"
+    group_label: "Totals"
     type: sum
     sql: ${TABLE}.timeOnScreen ;;
   }
   measure: uniqueScreenViews_total {
     label: "Unique Screen Views Total"
+    group_label: "Totals"
     type: sum
     sql: ${TABLE}.uniqueScreenViews ;;
   }
   dimension: timeOnScreen_total_unique{
     label: "Time On Screen Total"
+    group_label: "Totals"
     type: number
     sql: ${TABLE}.timeOnScreen ;;
   }
